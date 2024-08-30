@@ -1,6 +1,6 @@
 from django.db import models
 
-class account(models.Model):
+class account(models.Model):  # Use PascalCase for class names
     GENDER_CHOICES = [
         ('M', 'Male'),
         ('F', 'Female'),
@@ -9,7 +9,7 @@ class account(models.Model):
     
     name = models.CharField(max_length=100)
     age = models.PositiveIntegerField()
-    email = models.EmailField()
+    email = models.EmailField(primary_key=True)  # This is the only primary key
     phone = models.CharField(max_length=15)
     address = models.TextField()
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES)

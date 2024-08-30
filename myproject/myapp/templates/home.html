@@ -10,12 +10,19 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://getbootstrap.com/docs/5.3/assets/css/docs.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+      .btns{
+        background: none; 
+        border: none; 
+        color: #fff;
+    }
+    </style>
 </head>
 <body>
     <header class="header1">
         <h1 class="wlcm p-3 m-0 border-0 bd-example m-0 border-0">WELCOME TO UNIQUE BANK</h1>
 
-        <form method="post" action="{% url 'logout' %}">
+        <form method="post" action="{% url 'login' %}">
             {% csrf_token %}
             <button type="submit" class="btn1">Logout</button>
         </form>
@@ -56,11 +63,19 @@
         <div class="rows">
           <div class="options">
             <a href="{% url 'user_form' %}">
-              <button style="background: none; border: none; color: #fff;">Create Account</button>
+              <button class="btns">Create Account</button>
             </a>
           </div>
-          <div class="options">Update Account</div>
-          <div class="options">Delete Account</div>
+          <div class="options">
+            <a href="{% url 'edit_accounts' %}">
+              <button class="btns">Edit Account</button>
+            </a>
+          </div>
+          <div class="options">
+            <a href="{% url 'delete_account' %}">
+              <button class="btns">Delete Account</button>
+            </a>
+          </div>
         </div>
 
         <div class="rows">
