@@ -9,11 +9,10 @@
     <h1>Edit Account</h1>
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
+        <input type="hidden" name="account_number" value="{{ account_number }}">
         {{ form.as_p }}
         <button type="submit" name="save_changes">Save Changes</button>
-        {% if error %}
-            <p style="color: red;">{{ error }}</p>
-        {% endif %}
     </form>
+    
 </body>
 </html>
