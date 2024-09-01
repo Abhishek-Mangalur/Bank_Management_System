@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deposit</title>
+    <link rel="website icon" type="png" href="/static/images/icon.jpg">
+</head>
+<body>
+    <h1>Enter ATM 6-digit PIN</h1>
+
+    {% if not pin_validated %}
+        <!-- Step 1: Enter PIN -->
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" name="check_pin">Submit PIN</button>
+        </form>
+        {% if pin_error %}
+            <p style="color: red;">{{ pin_error }}</p>
+        {% endif %}
+
+    {% else %}
+        <!-- Step 2: Enter Deposit Amount -->
+        <form method="post">
+            <h2>Enter Amount</h2>
+            {% csrf_token %}
+            {{ deposit_form.as_p }}
+            <button type="submit" name="submit_deposit">Deposit</button>
+        </form>
+    {% endif %}
+
+    
+</body>
+</html>

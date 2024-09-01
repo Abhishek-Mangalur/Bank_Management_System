@@ -3,21 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Check Email</title>
+    <title>ATM</title>
     <link rel="website icon" type="png" href="/static/images/icon.jpg">
 </head>
 <body>
-    <h1>Check Email</h1>
+    <h1>Enter Your ATM Card Number</h1>
     <form method="post">
         {% csrf_token %}
-        {{ form.as_p }}
+        {{ number_form.as_p }}
         <button type="submit">Submit</button>
     </form>
 
-    {% if messages %}
-        {% for message in messages %}
-            <p>{{ message }}</p>
-        {% endfor %}
+    {% if error %}
+        <p style="color: red;">{{ error }}</p>
     {% endif %}
+
+    <a href="{% url 'home' %}"><button>HOME</button></a>
 </body>
 </html>

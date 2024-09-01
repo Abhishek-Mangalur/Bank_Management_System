@@ -3,15 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Information Form</title>
+    <title>Balance Enquiry</title>
     <link rel="website icon" type="png" href="/static/images/icon.jpg">
 </head>
 <body>
-    <h1>Fill the Form</h1>
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Submit</button>
-    </form>
+    <h1>Balance Enquiry</h1>
+    <p>Your current balance is: ₹ {{ balance }}</p>
+
+    <a href="{% url 'atm_options' generated_number=generated_number %}"><button>Back to Options</button></a>
 </body>
 </html>

@@ -84,14 +84,25 @@
               <button class="btns">ATM Application</button>
             </a>
           </div>
-          <div class="options">Deposite</div>
-          <div class="options">Withdraw</div>
+          <div class="options">
+            <a href="{% url 'deposite_amount' %}">
+              <button class="btns">Deposite</button>
+            </a>
+          </div>
+          <div class="options">
+            <a href="{% url 'withdraw_amount' %}">
+              <button class="btns">Withdraw</button>
+            </a>
+          </div>
         </div>
 
         <div class="rows">
           <div class="options">Loan</div>
           <div class="options">FD</div>
-          <div class="options">ATM</div>
+          <div class="options">
+            <a href="{% url 'atm_redirect' %}">
+              <button class="btns">ATM</button></a>
+          </div>
         </div>
 
         <div class="options" id="th">Transaction History</div>

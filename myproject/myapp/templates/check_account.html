@@ -4,11 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <link rel="website icon" type="png" href="/static/images/icon.jpg">
 </head>
 <body>
+    <h1>Enter Account Number for ATM Application</h1>
     <form method="post">
         {% csrf_token %}
-        {{ form.as_p }}
+        {{ form.account_number }}  <!-- Directly render the input field without label -->
         <button type="submit">Submit</button>
         {% if error %}
             <p style="color:red;">{{ error }}</p>
