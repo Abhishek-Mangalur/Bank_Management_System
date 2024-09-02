@@ -30,3 +30,24 @@ class account(models.Model):
 
     def __str__(self):
         return f"{self.fname} {self.lname}"
+
+class transactions(models.Model):
+    TRANSACTION_TYPES = [
+        ('D', 'Deposit'),
+        ('W', 'Withdrawal'),
+    ]
+    
+    account_number = models.CharField(max_length=14)  # Store the account_number directly
+    transaction_type = models.CharField(max_length=1, choices=TRANSACTION_TYPES)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    date = models.DateTimeField(auto_now_add=True)
+    description = models.TextField(null=True, blank=True)
+
+    def __str__(self):
+        return f"Transaction {self.pk} for account {self.account_number}"
+
+    class Meta:
+        ordering = ['-date']
+
+

@@ -80,7 +80,7 @@
 
         <div class="rows">
           <div class="options">
-            <a href="{% url 'check_account' %}">
+            <a href="{% url 'atmappln' %}">
               <button class="btns">ATM Application</button>
             </a>
           </div>
@@ -105,8 +105,13 @@
           </div>
         </div>
 
-        <div class="options" id="th">Transaction History</div>
+        <div class="options" id="th">
+            <a href="{% url 'view_transactions' %}">
+              <button class="btns">Transaction History</button>
+            </a>
+        </div>
       </div>
+
       <div class="right"><b>NOTICE:</b>
         <ul>
           <li>Online Bank Service will be 24 Hours</li>

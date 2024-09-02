@@ -22,7 +22,7 @@
             <h2>Enter Amount</h2>
             <form method="post">
                 {% csrf_token %}
-                {{ update_form.as_p }}
+                {{ update_form.new_amount }}
                 <button type="submit" name="update_amount">Submit</button>
             </form>
         {% endif %}

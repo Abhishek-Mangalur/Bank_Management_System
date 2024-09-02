@@ -1,13 +1,15 @@
 import random
 import smtplib
+# from django.db import transaction
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from django.core.mail import send_mail
 from django.contrib import messages
-from myapp.models import account
+from myapp.models import account, transactions
 from myapp.forms import accountForm, EmailForm, editForm, AccountNumberForm, DepositeForm, UpdateAmountForm, NumberForm, PinForm, AtmDepositForm
+
 
 def custom_login(request):
     if request.method == 'POST':
@@ -97,7 +99,7 @@ def edit_account(request):
         form = editForm(instance=accounts)
         return render(request, 'edit_account.html', {'form': form, 'account_number': account_number})
 
-def check_account(request):
+def atmappln(request):
     if request.method == 'POST':
         form = AccountNumberForm(request.POST)
         if form.is_valid():
@@ -141,50 +143,6 @@ def check_account(request):
         form = AccountNumberForm()
     return render(request, 'check_account.html', {'form': form})
 
-def check_account(request):
-    if request.method == 'POST':
-        form = AccountNumberForm(request.POST)
-        if form.is_valid():
-            account_number = form.cleaned_data['account_number'].strip()  # Remove any extra spaces
-            print(f"Checking for account number: '{account_number}'")  # Debugging output
-
-            try:
-                accounts = account.objects.get(account_number=account_number)
-                print(f"Account found: {accounts}")  # Debugging output
-            except account.DoesNotExist:
-                print("Account not found")  # Debugging output
-                return render(request, 'check_account.html', {'form': form, 'error': 'Account number does not exist'})
-
-            # Check if the 12-digit number and 6-digit pin already exist
-            if accounts.generated_number and accounts.pin:
-                # If they already exist, show an error message
-                return render(request, 'check_account.html', {
-                    'form': form,
-                    'error': 'ATM details already exist for this account.'
-                })
-            
-            # Generate a 12-digit number and a 6-digit pin
-            generated_number = ''.join([str(random.randint(0, 9)) for _ in range(12)])
-            pin = ''.join([str(random.randint(0, 9)) for _ in range(6)])
-
-            # Save the generated values in the account
-            accounts.generated_number = generated_number
-            accounts.pin = pin
-            accounts.save()
-
-            # Send an email with the generated number and pin
-            send_mail(
-                'Your Account Details',
-                f'Here are your account details:\n\n12-digit number: {generated_number}\n6-digit pin: {pin}',
-                'abhimangalur2@gmail.com',
-                [accounts.email],
-                fail_silently=False,
-            )
-            return redirect('home')  # Redirect to the homepage after processing
-    else:
-        form = AccountNumberForm()
-    return render(request, 'check_account.html', {'form': form})
-
 def deposite_amount(request):
     account_details = None
     error = None
@@ -206,15 +164,24 @@ def deposite_amount(request):
                 new_amount = update_form.cleaned_data['new_amount']
 
                 try:
-                    accounts = account.objects.get(account_number=account_number)
-                    accounts.amount += new_amount
-                    accounts.save()
-                    return redirect('home')  # Redirect to homepage after updating the amount
+                    with transaction.atomic():
+                        accounts = account.objects.get(account_number=account_number)
+                        accounts.amount += new_amount
+                        accounts.save()
+
+                        # Save the transaction with account_number
+                        transactions.objects.create(
+                            account_number=account_number,
+                            transaction_type='D',  # 'D' for Deposit
+                            amount=new_amount,
+                            total_amount=accounts.amount,
+                            description='Deposit via BANK'
+                        )
+                    return redirect('home')
                 except account.DoesNotExist:
                     error = 'Account number does not exist'
     
     else:
-        # Initialize update form with account number if details are fetched
         if account_details:
             update_form = UpdateAmountForm(initial={'account_number': account_details.account_number})
 
@@ -224,7 +191,6 @@ def deposite_amount(request):
         'account_details': account_details,
         'error': error
     })
-
 
 def withdraw_amount(request):
     account_details = None
@@ -248,14 +214,28 @@ def withdraw_amount(request):
 
                 try:
                     accounts = account.objects.get(account_number=account_number)
-                    accounts.amount -= new_amount
-                    accounts.save()
-                    return redirect('home')  # Redirect to homepage after updating the amount
+                    
+                    if new_amount <= accounts.amount:  # Check if withdrawal amount is less than or equal to the existing amount
+                        with transaction.atomic():
+                            # Update the account balance
+                            accounts.amount -= new_amount
+                            accounts.save()
+
+                            # Save the transaction with the updated total_amount
+                            transactions.objects.create(
+                                account_number=account_number,
+                                transaction_type='W',  # 'W' for Withdraw
+                                amount=new_amount,
+                                total_amount=accounts.amount,  # Store the updated balance
+                                description='Withdraw via BANK'
+                            )
+                        return redirect('home')
+                    else:
+                        error = 'Insufficient funds. Please enter a smaller amount.'
                 except account.DoesNotExist:
                     error = 'Account number does not exist'
     
     else:
-        # Initialize update form with account number if details are fetched
         if account_details:
             update_form = UpdateAmountForm(initial={'account_number': account_details.account_number})
 
@@ -336,8 +316,20 @@ def deposit(request, generated_number):
             if deposit_form.is_valid():
                 new_amount = deposit_form.cleaned_data.get('amount')
                 if new_amount > 0:
-                    account_details.amount += new_amount
-                    account_details.save()
+                    with transaction.atomic():
+                        # Update the account balance
+                        account_details.amount += new_amount
+                        account_details.save()
+
+                        # Save the transaction
+                        transactions.objects.create(
+                            account_number=account_details.account_number,
+                            transaction_type='D',  # 'D' for Deposit
+                            amount=new_amount,
+                            total_amount=account_details.amount,  # Store the updated balance
+                            description='Deposit via ATM'
+                        )
+
                     # Redirect to the ATM options page after a successful deposit
                     return redirect('atm_options', generated_number=generated_number)
                 else:
@@ -356,7 +348,6 @@ def deposit(request, generated_number):
         'pin_validated': pin_validated,
         'generated_number': generated_number,
     })
-
 
 def withdraw(request, generated_number):
     account_details = None
@@ -384,10 +375,25 @@ def withdraw(request, generated_number):
             if deposit_form.is_valid():
                 new_amount = deposit_form.cleaned_data.get('amount')
                 if new_amount > 0:
-                    account_details.amount -= new_amount
-                    account_details.save()
-                    # Redirect to the ATM options page after a successful deposit
-                    return redirect('atm_options', generated_number=generated_number)
+                    if new_amount <= account_details.amount:  # Check if the amount is less than or equal to the available balance
+                        with transaction.atomic():
+                            # Update the account balance
+                            account_details.amount -= new_amount
+                            account_details.save()
+
+                            # Save the transaction
+                            transactions.objects.create(
+                                account_number=account_details.account_number,
+                                transaction_type='W',  # 'W' for Withdraw
+                                amount=new_amount,
+                                total_amount=account_details.amount,  # Store the updated balance
+                                description='Withdraw via ATM'
+                            )
+
+                        # Redirect to the ATM options page after a successful withdrawal
+                        return redirect('atm_options', generated_number=generated_number)
+                    else:
+                        pin_error = 'Insufficient funds. Please enter a smaller amount.'
                 else:
                     pin_error = 'Amount must be positive.'
             else:
@@ -403,4 +409,27 @@ def withdraw(request, generated_number):
         'pin_error': pin_error,
         'pin_validated': pin_validated,
         'generated_number': generated_number,
+    })
+
+def view_transactions(request):
+    form = AccountNumberForm(request.POST or None)
+    transaction = None
+    error = None
+
+    if request.method == 'POST':
+        if form.is_valid():
+            account_number = form.cleaned_data['account_number'].strip()
+            try:
+                # Ensure the account exists
+                account_obj = account.objects.get(account_number=account_number)
+                
+                # Fetch all transactions related to the account, ordered from oldest to newest
+                transaction = transactions.objects.filter(account_number=account_number).order_by('date')
+            except account.DoesNotExist:
+                error = 'Account number does not exist'
+
+    return render(request, 'view_transactions.html', {
+        'form': form,
+        'transaction': transaction,
+        'error': error
     })
