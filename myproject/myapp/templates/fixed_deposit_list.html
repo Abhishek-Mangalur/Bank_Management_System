@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fixed Deposit List</title>
+</head>
+<body>
+    <h1>Fixed Deposits List</h1>
+
+    {% if fds %}
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>FD ID</th>
+                    <th>Principal Amount</th>
+                    <th>Interest Rate</th>
+                    <th>Start Date</th>
+                    <th>Maturity Date</th>
+                    <th>Matured Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for fd in fds %}
+                    <tr>
+                        <td>{{ fd.id }}</td>
+                        <td>{{ fd.principal_amount }}</td>
+                        <td>{{ fd.interest_rate }}</td>
+                        <td>{{ fd.start_date }}</td>
+                        <td>{{ fd.maturity_date }}</td>
+                        <td>{{ fd.matured_amount }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No Fixed Deposits available.</p>
+    {% endif %}
+
+    <a href="{% url 'home' %}"><button>HOME</button></a>
+</body>
+</html>

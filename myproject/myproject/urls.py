@@ -16,14 +16,15 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from myapp.views import custom_login, home, custom_logout, user_form, delete_account, edit_account, edit_accounts, atmappln, deposite_amount, withdraw_amount, atm_redirect, atm_options, balance_enquiry, deposit, withdraw, view_transactions
+from myapp.views import custom_login, home, custom_logout, user_form, delete_account, edit_account, edit_accounts, deposite_amount, withdraw_amount, atm_redirect, atm_options, balance_enquiry, deposit, withdraw, view_transactions, loan_fetch, get_loan, close_loan, pay_loan, atmappln, loan_transactions, fetch_fd, fd_list, create_fd, close_fd, loan_list
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', custom_login, name='login'),
     path('login/', custom_login, name='login'),
-    path('home/', home, name='home'),
     path('logout/', custom_logout, name='login'),
+    path('home/', home, name='home'),
     path('form/', user_form, name='user_form'),
     path('delete/', delete_account, name='delete_account'),
     path('edit/', edit_account, name='edit_account'),
@@ -32,10 +33,19 @@ urlpatterns = [
     path('deposite/', deposite_amount, name='deposite_amount'),
     path('withdraw/', withdraw_amount, name='withdraw_amount'),
     path('view_transactions/', view_transactions, name='view_transactions'),
-
+    path('loans/', loan_list, name='loan_list'),
+    path('loan_fetch/', loan_fetch, name='loan_fetch'),
+    path('loan_transactions/', loan_transactions, name='loan_transactions'),
+    path('fetch_fd/', fetch_fd, name='fetch_fd'),
+    path('fixed-deposits/', fd_list, name='fd_list'),
     path('atm/', atm_redirect, name='atm_redirect'),
     path('atm/options/<str:generated_number>/', atm_options, name='atm_options'),
     path('balance/<str:generated_number>/', balance_enquiry, name='balance_enquiry'),
     path('atmdeposit/<str:generated_number>/', deposit, name='deposit'),
     path('atmwithdraw/<str:generated_number>/', withdraw, name='withdraw'),
+    path('get-loan/<str:account_number>/', get_loan, name='get_loan'),
+    path('pay-loan/<str:account_number>/', pay_loan, name='pay_loan'),
+    path('close-loan/<str:account_number>/', close_loan, name='close_loan'),    
+    path('create-fd/<str:account_number>/', create_fd, name='create_fd'),
+    path('close-fd/<str:account_number>/', close_fd, name='close_fd'),
 ]

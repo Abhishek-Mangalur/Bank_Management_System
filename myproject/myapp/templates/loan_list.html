@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loan List</title>
+</head>
+<body>
+    <h1>Loan List</h1>
+
+    {% if loans %}
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Loan ID</th>
+                    <th>Account Number</th>
+                    <th>Loan Amount</th>
+                    <th>Tenure (Months)</th>
+                    <th>Interest Rate</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>Paid Loan</th>
+                    <th>Remaining Loan</th>
+                    <th>Reason</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for loan in loans %}
+                    <tr>
+                        <td>{{ loan.id }}</td>
+                        <td>{{ loan.account_number }}</td>
+                        <td>{{ loan.loan_amount }}</td>
+                        <td>{{ loan.tenure }}</td>
+                        <td>{{ loan.interest_rate }}</td>
+                        <td>{{ loan.start_date }}</td>
+                        <td>{{ loan.end_date }}</td>
+                        <td>{{ loan.payed_loan }}</td>
+                        <td>{{ loan.remaining_loan }}</td>
+                        <td>{{ loan.reason }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No loans available.</p>
+    {% endif %}
+
+    <a href="{% url 'home' %}"><button>Back to Home</button></a>
+</body>
+</html>

@@ -1,14 +1,14 @@
 import random
 import smtplib
-# from django.db import transaction
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from django.core.mail import send_mail
 from django.contrib import messages
-from myapp.models import account, transactions
-from myapp.forms import accountForm, EmailForm, editForm, AccountNumberForm, DepositeForm, UpdateAmountForm, NumberForm, PinForm, AtmDepositForm
+from django.utils import timezone
+from myapp.models import Account, Transaction, Loan, LoanTransaction, FixedDeposit
+from myapp.forms import AccountForm, EmailForm, EditForm, AccountNumberForm, DepositeForm, UpdateAmountForm, NumberForm, PinForm, AtmDepositForm, LoanSelectForm, PayLoanForm, LoanForm, FixedDepositForm
 
 
 def custom_login(request):
@@ -32,17 +32,7 @@ def custom_logout(request):
 
 def user_form(request):
     if request.method == 'POST':
-        form = accountForm(request.POST, request.FILES)
-        if form.is_valid():
-            form.save()
-            return redirect('home')
-    else:
-        form = accountForm()
-    return render(request, 'user_form.html', {'form': form})
-
-def user_form(request):
-    if request.method == 'POST':
-        form = accountForm(request.POST, request.FILES)
+        form = AccountForm(request.POST, request.FILES)
         if form.is_valid():
             user_info = form.save()
             # Send a confirmation email
@@ -55,7 +45,7 @@ def user_form(request):
             )
             return redirect('home')
     else:
-        form = accountForm()
+        form = AccountForm()
     return render(request, 'user_form.html', {'form': form})
 
 def delete_account(request):
@@ -63,7 +53,7 @@ def delete_account(request):
         account_number = request.POST.get('account_number')
         try:
             # Retrieve the account using the account number
-            accounts = account.objects.get(account_number=account_number)
+            accounts = Account.objects.get(account_number=account_number)
             registered_email = accounts.email  # Assuming the 'account' model has an 'email' field
             # Delete the account
             accounts.delete()
@@ -76,7 +66,7 @@ def delete_account(request):
                 fail_silently=False,
             )
             messages.success(request, 'Account successfully deleted. A confirmation email has been sent.')
-        except account.DoesNotExist:
+        except Account.DoesNotExist:
             messages.error(request, 'No account found with this account number.')
         return redirect('home')
     return render(request, 'delete_account.html')
@@ -87,16 +77,16 @@ def edit_accounts(request):
 def edit_account(request):
     account_number = request.GET.get('account_number') if request.method == 'GET' else request.POST.get('account_number')    
     # Fetch the account instance only once
-    accounts = get_object_or_404(account, account_number=account_number)
+    accounts = get_object_or_404(Account, account_number=account_number)
     if request.method == 'POST':
-        form = editForm(request.POST, request.FILES, instance=accounts)
+        form = EditForm(request.POST, request.FILES, instance=accounts)
         if form.is_valid():
             form.save()
             return redirect('home')
         else:
             return render(request, 'edit_account.html', {'form': form, 'error': 'Form is invalid', 'account_number': account_number})
     else:  # Handle GET request
-        form = editForm(instance=accounts)
+        form = EditForm(instance=accounts)
         return render(request, 'edit_account.html', {'form': form, 'account_number': account_number})
 
 def atmappln(request):
@@ -107,9 +97,9 @@ def atmappln(request):
             print(f"Checking for account number: '{account_number}'")  # Debugging output
 
             try:
-                accounts = account.objects.get(account_number=account_number)
+                accounts = Account.objects.get(account_number=account_number)
                 print(f"Account found: {accounts}")  # Debugging output
-            except account.DoesNotExist:
+            except Account.DoesNotExist:
                 print("Account not found")  # Debugging output
                 return render(request, 'check_account.html', {'form': form, 'error': 'Account number does not exist'})
 
@@ -154,8 +144,8 @@ def deposite_amount(request):
             if form.is_valid():
                 account_number = form.cleaned_data['account_number'].strip()
                 try:
-                    account_details = account.objects.get(account_number=account_number)
-                except account.DoesNotExist:
+                    account_details = Account.objects.get(account_number=account_number)
+                except Account.DoesNotExist:
                     error = 'Account number does not exist'
         
         elif 'update_amount' in request.POST:
@@ -165,12 +155,12 @@ def deposite_amount(request):
 
                 try:
                     with transaction.atomic():
-                        accounts = account.objects.get(account_number=account_number)
+                        accounts = Account.objects.get(account_number=account_number)
                         accounts.amount += new_amount
                         accounts.save()
 
                         # Save the transaction with account_number
-                        transactions.objects.create(
+                        Transaction.objects.create(
                             account_number=account_number,
                             transaction_type='D',  # 'D' for Deposit
                             amount=new_amount,
@@ -178,7 +168,7 @@ def deposite_amount(request):
                             description='Deposit via BANK'
                         )
                     return redirect('home')
-                except account.DoesNotExist:
+                except Account.DoesNotExist:
                     error = 'Account number does not exist'
     
     else:
@@ -203,8 +193,8 @@ def withdraw_amount(request):
             if form.is_valid():
                 account_number = form.cleaned_data['account_number'].strip()
                 try:
-                    account_details = account.objects.get(account_number=account_number)
-                except account.DoesNotExist:
+                    account_details = Account.objects.get(account_number=account_number)
+                except Account.DoesNotExist:
                     error = 'Account number does not exist'
         
         elif 'update_amount' in request.POST:
@@ -213,7 +203,7 @@ def withdraw_amount(request):
                 new_amount = update_form.cleaned_data['new_amount']
 
                 try:
-                    accounts = account.objects.get(account_number=account_number)
+                    accounts = Account.objects.get(account_number=account_number)
                     
                     if new_amount <= accounts.amount:  # Check if withdrawal amount is less than or equal to the existing amount
                         with transaction.atomic():
@@ -222,7 +212,7 @@ def withdraw_amount(request):
                             accounts.save()
 
                             # Save the transaction with the updated total_amount
-                            transactions.objects.create(
+                            Transaction.objects.create(
                                 account_number=account_number,
                                 transaction_type='W',  # 'W' for Withdraw
                                 amount=new_amount,
@@ -232,7 +222,7 @@ def withdraw_amount(request):
                         return redirect('home')
                     else:
                         error = 'Insufficient funds. Please enter a smaller amount.'
-                except account.DoesNotExist:
+                except Account.DoesNotExist:
                     error = 'Account number does not exist'
     
     else:
@@ -254,10 +244,10 @@ def atm_redirect(request):
         if number_form.is_valid():
             generated_number = number_form.cleaned_data.get('generated_number').strip()
             try:
-                account_details = account.objects.get(generated_number=generated_number)
+                account_details = Account.objects.get(generated_number=generated_number)
                 # If account exists, redirect to the options page with the generated number
                 return redirect('atm_options', generated_number=generated_number)
-            except account.DoesNotExist:
+            except Account.DoesNotExist:
                 error = 'Invalid ATM card number'
 
     return render(request, 'atm_redirect.html', {
@@ -265,11 +255,10 @@ def atm_redirect(request):
         'error': error
     })
 
-
 def atm_options(request, generated_number):
     try:
-        account_details = account.objects.get(generated_number=generated_number)
-    except account.DoesNotExist:
+        account_details = Account.objects.get(generated_number=generated_number)
+    except Account.DoesNotExist:
         return redirect('atm_redirect')
 
     return render(request, 'atm_options.html', {
@@ -277,12 +266,11 @@ def atm_options(request, generated_number):
         'account_details': account_details
     })
 
-
 def balance_enquiry(request, generated_number):
     try:
-        account_details = account.objects.get(generated_number=generated_number)
+        account_details = Account.objects.get(generated_number=generated_number)
         balance = account_details.amount
-    except account.DoesNotExist:
+    except Account.DoesNotExist:
         return redirect('atm_redirect')
 
     return render(request, 'balance_enquiry.html', {
@@ -298,8 +286,8 @@ def deposit(request, generated_number):
     deposit_form = None
 
     try:
-        account_details = account.objects.get(generated_number=generated_number)
-    except account.DoesNotExist:
+        account_details = Account.objects.get(generated_number=generated_number)
+    except Account.DoesNotExist:
         return redirect('atm_redirect')  # Handle non-existing account
 
     if request.method == 'POST':
@@ -322,7 +310,7 @@ def deposit(request, generated_number):
                         account_details.save()
 
                         # Save the transaction
-                        transactions.objects.create(
+                        Transaction.objects.create(
                             account_number=account_details.account_number,
                             transaction_type='D',  # 'D' for Deposit
                             amount=new_amount,
@@ -357,8 +345,8 @@ def withdraw(request, generated_number):
     deposit_form = None
 
     try:
-        account_details = account.objects.get(generated_number=generated_number)
-    except account.DoesNotExist:
+        account_details = Account.objects.get(generated_number=generated_number)
+    except Account.DoesNotExist:
         return redirect('atm_redirect')  # Handle non-existing account
 
     if request.method == 'POST':
@@ -382,7 +370,7 @@ def withdraw(request, generated_number):
                             account_details.save()
 
                             # Save the transaction
-                            transactions.objects.create(
+                            Transaction.objects.create(
                                 account_number=account_details.account_number,
                                 transaction_type='W',  # 'W' for Withdraw
                                 amount=new_amount,
@@ -421,15 +409,293 @@ def view_transactions(request):
             account_number = form.cleaned_data['account_number'].strip()
             try:
                 # Ensure the account exists
-                account_obj = account.objects.get(account_number=account_number)
+                account_obj = Account.objects.get(account_number=account_number)
                 
                 # Fetch all transactions related to the account, ordered from oldest to newest
-                transaction = transactions.objects.filter(account_number=account_number).order_by('date')
-            except account.DoesNotExist:
+                transaction = Transaction.objects.filter(account_number=account_number).order_by('date')
+            except Account.DoesNotExist:
                 error = 'Account number does not exist'
 
     return render(request, 'view_transactions.html', {
         'form': form,
         'transaction': transaction,
         'error': error
+    })
+
+def loan_list(request):
+    # Fetch all loans
+    loans = Loan.objects.all()
+
+    return render(request, 'loan_list.html', {
+        'loans': loans
+    })
+
+def loan_fetch(request):
+    account_details = None
+    error = None
+    form = AccountNumberForm(request.POST or None)
+
+    if request.method == 'POST':
+        if form.is_valid():
+            account_number = form.cleaned_data['account_number'].strip()
+            try:
+                account_details = Account.objects.get(account_number=account_number)
+            except Account.DoesNotExist:
+                error = "Account number does not exist."
+
+    return render(request, 'loan_fetch.html', {
+        'form': form,
+        'account_details': account_details,
+        'error': error,
+    })
+
+def get_loan(request, account_number):
+    account_details = Account.objects.get(account_number=account_number)
+
+    if request.method == 'POST':
+        form = LoanForm(request.POST)
+        if form.is_valid():
+            loan = form.save(commit=False)
+            loan.account_number = account_number  # Ensure the correct account number is saved
+            loan.reason = form.cleaned_data['reason']  # Capture the reason from the form
+            loan.save()
+
+            # Send an email notification
+            send_mail(
+                'Loan Created Successfully',
+                f'Your loan has been successfully sanctioned.\n\n Reason: {loan.reason} \nAmount: ₹{loan.loan_amount}\nInterest: {loan.interest_rate}\nTime Period: {loan.tenure} Months\nBest Regards,\nUNIQUE BANK',
+                settings.DEFAULT_FROM_EMAIL,
+                [account_details.email],
+                fail_silently=False,
+            )
+
+            # Redirect to home after saving
+            return redirect('home')
+
+    else:
+        form = LoanForm()
+
+    return render(request, 'get_loan.html', {
+        'form': form,
+        'account_details': account_details,
+    })
+
+def pay_loan(request, account_number):
+    # Fetch loans associated with the account_number
+    loans = Loan.objects.filter(account_number=account_number)
+    
+    if request.method == 'POST':
+        form = PayLoanForm(request.POST, account_number=account_number)
+        if form.is_valid():
+            reason = form.cleaned_data['reason']
+            payed_loan = form.cleaned_data['payed_loan']
+            
+            # Debug print
+            print(f"Submitted reason: {reason}")
+            print(f"Available reasons: {[loan.reason for loan in loans]}")
+
+            # Find the loan with the matching reason
+            loan = get_object_or_404(loans, reason=reason)
+            
+            # Process the payment
+            if payed_loan > 0 and payed_loan <= loan.remaining_loan:
+                loan.remaining_loan -= payed_loan
+                loan.payed_loan += payed_loan  # Update paid amount
+                loan.save()
+
+                # Create a new loan transaction record
+                LoanTransaction.objects.create(
+                    loan=loan,
+                    amount=payed_loan,
+                    date_time=timezone.now(),  # Add current date and time
+                    description=f"{reason} loan Payment"
+                )
+
+                # Redirect or render a success page
+                return redirect('home')
+            else:
+                # Handle error if payment is invalid
+                form.add_error('payed_loan', 'Payment amount is invalid or exceeds remaining loan.')
+        else:
+            # Debug print for form errors
+            print(f"Form errors: {form.errors}")
+    else:
+        form = PayLoanForm(account_number=account_number)
+
+    return render(request, 'pay_loan.html', {'form': form})
+
+def close_loan(request, account_number):
+    if request.method == 'POST':
+        form = LoanSelectForm(request.POST, account_number=account_number)
+        if form.is_valid():
+            reason = form.cleaned_data.get('reason')
+            # Fetch the loan object based on the selected reason and account number
+            loan = get_object_or_404(Loan, account_number=account_number, reason=reason)
+            
+            if loan.remaining_loan == 0:
+                # Close the loan
+                loan.delete()
+
+                # Get the email address of the account holder
+                account = get_object_or_404(Account, account_number=account_number)
+                recipient_email = account.email
+
+                # Send an email notification
+                send_mail(
+                    'Loan Closed Successfully',
+                    f'Your "{reason}" loan has been successfully closed.\nBest Regards,\nUNIQUE BANK',
+                    settings.DEFAULT_FROM_EMAIL,
+                    [recipient_email],
+                    fail_silently=False,
+                )
+
+                messages.success(request, f"Loan '{loan.reason}' has been successfully closed.")
+                return redirect('home')  # Redirect to a success page or home
+            else:
+                # Error message if loan balance is not zero
+                messages.error(request, "Cannot close the loan. Remaining balance must be zero.")
+    else:
+        form = LoanSelectForm(account_number=account_number)
+
+    return render(request, 'close_loan.html', {'form': form})
+
+def loan_transactions(request):
+    form = AccountNumberForm(request.POST or None)
+    transactions = None
+    error = None
+
+    if request.method == 'POST':
+        if form.is_valid():
+            account_number = form.cleaned_data['account_number'].strip()
+            try:
+                # Ensure the account exists
+                account_obj = Account.objects.get(account_number=account_number)
+                
+                # Fetch all transactions related to the account, ordered from oldest to newest
+                transactions = LoanTransaction.objects.filter(
+                    account_number=account_number
+                ).order_by('date_time')
+                
+                if not transactions.exists():
+                    error = 'No transactions found for this account number.'
+                    
+            except Account.DoesNotExist:
+                error = 'Account number does not exist.'
+
+    context = {
+        'form': form,
+        'transactions': transactions,
+        'error': error
+    }
+    return render(request, 'loan_transactions.html', context)
+
+def fetch_fd(request):
+    form = AccountNumberForm(request.POST or None)
+    account_holder = None
+    error = None
+    show_create_fd_button = False
+    fds = []  # Initialize as an empty list
+
+    if request.method == 'POST':
+        if form.is_valid():
+            account_number = form.cleaned_data['account_number'].strip()
+            try:
+                # Fetch the account holder details
+                account_holder = get_object_or_404(Account, account_number=account_number)
+                
+                # Fetch all FDs associated with the account
+                fds = FixedDeposit.objects.filter(account_number=account_holder)
+                print(f"Fetched FDs: {fds}")  # Debug print statement
+                
+                show_create_fd_button = True  # Show the "Create FD" button
+            except Account.DoesNotExist:
+                error = 'Account number does not exist.'
+
+    return render(request, 'fetch_fd.html', {
+        'form': form,
+        'account_holder': account_holder,
+        'fds': fds,  # Pass the FDs to the template
+        'error': error,
+        'show_create_fd_button': show_create_fd_button
+    })
+
+def create_fd(request, account_number):
+    account = get_object_or_404(Account, account_number=account_number)
+
+    if request.method == 'POST':
+        form = FixedDepositForm(request.POST)
+        if form.is_valid():
+            fd = form.save(commit=False)
+            fd.account_number = account_number
+            fd.save()
+
+            # Send an email notification
+            send_mail(
+                'Fixed Deposit Created Successfully',
+                f'Your Fixed Deposit has been successfully created with the following details:\n\n'
+                f'Account Number: {account_number}\n'
+                f'Principal Amount: {fd.principal_amount:.2f}\n'
+                f'Interest Rate: {fd.interest_rate}\n'
+                f'Start Date: {fd.start_date}\n'
+                f'Maturity Date: {fd.maturity_date}\n'
+                f'Matured Amount: {fd.matured_amount:.2f}\nBest Regards,\nUNIQUE BANK',
+                settings.DEFAULT_FROM_EMAIL,
+                [account.email],
+                fail_silently=False,
+            )
+
+            messages.success(request, "Fixed Deposit has been successfully created.")
+            return redirect('home')
+    else:
+        form = FixedDepositForm()
+
+    return render(request, 'create_fd.html', {
+        'form': form,
+        'account_number': account_number,
+    })
+
+def close_fd(request, account_number):
+    # Fetch all Fixed Deposits for the account
+    fds = FixedDeposit.objects.filter(account_number=account_number)
+    
+    if request.method == 'POST':
+        fd_id = request.POST.get('fd_id')
+        # Get the selected FD
+        fd = get_object_or_404(FixedDeposit, id=fd_id)
+        
+        # Get the account associated with the FD
+        account = get_object_or_404(Account, account_number=account_number)
+
+        # Delete the FD
+        fd.delete()
+
+        # Send an email notification
+        send_mail(
+            'Fixed Deposit Closed Successfully',
+            f'Your Fixed Deposit with ID {fd_id} has been successfully closed. Here are the details:\n\n'
+            f'Account Number: {account_number}\n'
+            f'Principal Amount: {fd.principal_amount:.2f}\n'
+            f'Interest Rate: {fd.interest_rate}%\n'
+            f'Start Date: {fd.start_date}\n'
+            f'Maturity Date: {fd.maturity_date}\n'
+            f'Matured Amount: {fd.matured_amount:.2f}\nBest Regards,\nUNIQUE BANK',
+            settings.DEFAULT_FROM_EMAIL,
+            [account.email],
+            fail_silently=False,
+        )
+
+        messages.success(request, "Fixed Deposit has been successfully closed.")
+        return redirect('home')
+    
+    return render(request, 'close_fd.html', {
+        'fds': fds,
+        'account_number': account_number
+    })
+
+def fd_list(request):
+    # Fetch all Fixed Deposits
+    fds = FixedDeposit.objects.all()
+
+    return render(request, 'fixed_deposit_list.html', {
+        'fds': fds
     })

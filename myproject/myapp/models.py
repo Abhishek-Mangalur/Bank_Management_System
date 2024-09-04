@@ -1,7 +1,9 @@
 from django.db import models
 import random
+from django.utils import timezone
+from decimal import Decimal
 
-class account(models.Model):
+class Account(models.Model):
     GENDER_CHOICES = [
         ('M', 'Male'),
         ('F', 'Female'),
@@ -31,7 +33,7 @@ class account(models.Model):
     def __str__(self):
         return f"{self.fname} {self.lname}"
 
-class transactions(models.Model):
+class Transaction(models.Model):
     TRANSACTION_TYPES = [
         ('D', 'Deposit'),
         ('W', 'Withdrawal'),
@@ -50,4 +52,74 @@ class transactions(models.Model):
     class Meta:
         ordering = ['-date']
 
+class Loan(models.Model):
+    account_number = models.CharField(max_length=14)
+    loan_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    tenure = models.PositiveIntegerField(help_text="")
+    interest_rate = models.DecimalField(max_digits=5, decimal_places=2)
+    start_date = models.DateField(default=timezone.now, editable=False)
+    end_date = models.DateField(null=True, blank=True, editable=False)
+    payed_loan = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
+    remaining_loan = models.DecimalField(max_digits=10, decimal_places=2, editable=False)
+    reason = models.TextField(null=True, blank=True)
 
+    def save(self, *args, **kwargs):
+        if not self.end_date:
+            self.end_date = self.start_date + timezone.timedelta(days=self.tenure * 30)
+        self.remaining_loan = self.loan_amount - self.payed_loan
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"Loan {self.pk} for account {self.account_number}"
+
+    def __str__(self):
+        return f"Loan {self.pk} for account {self.account_number}"
+
+class LoanTransaction(models.Model):
+    loan = models.ForeignKey(Loan, on_delete=models.CASCADE)
+    account_number = models.CharField(max_length=14, editable=False)
+    total_loan = models.DecimalField(max_digits=10, decimal_places=2)
+    payed_loan = models.DecimalField(max_digits=10, decimal_places=2, editable=False)
+    remaining_loan = models.DecimalField(max_digits=10, decimal_places=2, editable=False)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    date_time = models.DateTimeField(auto_now_add=True)
+    description = models.TextField(null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        # Populate fields from the related Loan instance
+        if self.loan:
+            self.account_number = self.loan.account_number
+            self.total_loan = self.loan.loan_amount  # Make sure to set total_loan
+            self.remaining_loan = self.loan.remaining_loan
+            self.payed_loan = self.loan.payed_loan
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"Transaction {self.pk} for loan {self.loan.pk}"
+
+class FixedDeposit(models.Model):
+    account_number = models.CharField(max_length=14)
+    principal_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    interest_rate = models.DecimalField(max_digits=5, decimal_places=2)  # Annual interest rate
+    start_date = models.DateField(default=timezone.now)
+    maturity_date = models.DateField()
+    matured_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    
+    def calculate_matured_amount(self):
+        # Calculate the number of years between start_date and maturity_date
+        delta = self.maturity_date - self.start_date
+        years = Decimal(delta.days) / Decimal(365.25)
+        
+        # Formula for compound interest
+        interest_rate_decimal = Decimal(self.interest_rate) / Decimal(100)
+        matured_amount = self.principal_amount * ((1 + interest_rate_decimal) ** years)
+        return matured_amount
+
+    def save(self, *args, **kwargs):
+        # Calculate matured amount before saving
+        if not self.matured_amount:
+            self.matured_amount = self.calculate_matured_amount()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"FD {self.pk} for account {self.account_number}"

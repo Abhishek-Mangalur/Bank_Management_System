@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fetch Account Details</title>
+</head>
+<body>
+    <h1>Enter Account Number</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.account_number }}  <!-- Renders the account_number field -->
+        <button type="submit">Fetch</button>  <!-- Fetch button -->
+    </form>
+
+    {% if error %}
+        <p style="color: red;">{{ error }}</p>
+    {% endif %}
+
+    {% if account_details %}
+        <h2>Account Holder: {{ account_details.fname }} {{ account_details.lname }}</h2>
+        <div>
+            <a href="{% url 'get_loan' account_details.account_number %}">
+                <button type="button">Get Loan</button>
+            </a><br>
+            <a href="{% url 'pay_loan' account_details.account_number %}">
+                <button type="button">Pay Loan</button>
+            </a><br>
+            <a href="{% url 'close_loan' account_details.account_number %}">
+                <button type="button">Close Loan</button>
+            </a>
+        </div>
+    {% endif %}
+</body>
+</html>
