@@ -11,6 +11,11 @@ class AccountForm(forms.ModelForm):
             'date': forms.DateInput(attrs={'type': 'date'}),  # Renders the date field as a date picker
         }
 
+    def __init__(self, *args, **kwargs):
+        super(AccountForm, self).__init__(*args, **kwargs)
+        self.fields['amount'].initial = None  # This makes the amount field empty by default
+        self.fields['amount'].widget.attrs['placeholder'] = ''  # Optional: Adds an empty placeholder
+
 class EditForm(forms.ModelForm):
     terms_accepted = forms.BooleanField(label="I accept the terms and conditions", required=True)
     
@@ -34,7 +39,7 @@ class DepositeForm(forms.Form):
 
 class UpdateAmountForm(forms.Form):
     account_number = forms.CharField(max_length=20, widget=forms.HiddenInput())
-    new_amount = forms.DecimalField(max_digits=10, decimal_places=2, label='New Amount')
+    new_amount = forms.DecimalField(max_digits=10, decimal_places=2, label='Enter Amount')
 
     def clean_new_amount(self):
         new_amount = self.cleaned_data.get('new_amount')

@@ -61,7 +61,7 @@ class Loan(models.Model):
     end_date = models.DateField(null=True, blank=True, editable=False)
     payed_loan = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
     remaining_loan = models.DecimalField(max_digits=10, decimal_places=2, editable=False)
-    reason = models.TextField(null=True, blank=True)
+    reason = models.CharField(max_length=255)
 
     def save(self, *args, **kwargs):
         if not self.end_date:
@@ -74,6 +74,9 @@ class Loan(models.Model):
 
     def __str__(self):
         return f"Loan {self.pk} for account {self.account_number}"
+
+    class Meta:
+        unique_together = ('account_number', 'reason')
 
 class LoanTransaction(models.Model):
     loan = models.ForeignKey(Loan, on_delete=models.CASCADE)

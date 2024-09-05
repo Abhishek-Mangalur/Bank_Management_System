@@ -1,5 +1,6 @@
 import random
 import smtplib
+from django.db import transaction, IntegrityError
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect, get_object_or_404
@@ -38,7 +39,7 @@ def user_form(request):
             # Send a confirmation email
             send_mail(
                 subject='Account Opening..!',
-                message=f'Dear {user_info.fname} {user_info.lname},\n\nThank you for registering. We have received your information.\nYour Account No: {user_info.account_number}\n\nBest Regards,\nUNIQUE BANK',
+                message=f'Dear {user_info.fname} {user_info.lname},\n\nThank you for registering. We have received your information.\n\nYour Account No: {user_info.account_number}\n\n\nBest Regards,\nUNIQUE BANK',
                 from_email='abhimangalur2@gmail.com',
                 recipient_list=[user_info.email],
                 fail_silently=False,
@@ -60,7 +61,7 @@ def delete_account(request):
             # Send a success message to the user's email
             send_mail(
                 'Account Deletion Confirmation',
-                'Your account has been successfully deleted.\nThank You for Using UNIQUE BANK Services\n\nBest Regards,\nUNIQUE BANK',
+                'Your account has been successfully deleted.\n\nThank You for Using UNIQUE BANK Services\n\n\nBest Regards,\nUNIQUE BANK',
                 'abhimangalur2@gmail.com',  # Replace with your "from" email
                 [registered_email],
                 fail_silently=False,
@@ -123,7 +124,7 @@ def atmappln(request):
             # Send an email with the generated number and pin
             send_mail(
                 'Your ATM Details',
-                f'Here are your ATM Card details:\n\n12-digit number: {generated_number}\n6-digit pin: {pin}',
+                f'Here are your ATM Card details:\n\n12-digit number: {generated_number}\n6-digit pin: {pin}\n\n\nBest Regards,\nUNIQUE BANK',
                 'abhimangalur2@gmail.com',
                 [accounts.email],
                 fail_silently=False,
@@ -147,34 +148,36 @@ def deposite_amount(request):
                     account_details = Account.objects.get(account_number=account_number)
                 except Account.DoesNotExist:
                     error = 'Account number does not exist'
+                else:
+                    # Initialize the update_form with the fetched account number
+                    update_form = UpdateAmountForm(initial={'account_number': account_number})
         
         elif 'update_amount' in request.POST:
             if update_form.is_valid():
                 account_number = update_form.cleaned_data['account_number'].strip()
                 new_amount = update_form.cleaned_data['new_amount']
 
-                try:
-                    with transaction.atomic():
-                        accounts = Account.objects.get(account_number=account_number)
-                        accounts.amount += new_amount
-                        accounts.save()
+                if new_amount <= 0:
+                    error = 'Deposit amount must be greater than zero'
+                else:
+                    try:
+                        with transaction.atomic():
+                            accounts = Account.objects.get(account_number=account_number)
+                            accounts.amount += new_amount
+                            accounts.save()
 
-                        # Save the transaction with account_number
-                        Transaction.objects.create(
-                            account_number=account_number,
-                            transaction_type='D',  # 'D' for Deposit
-                            amount=new_amount,
-                            total_amount=accounts.amount,
-                            description='Deposit via BANK'
-                        )
-                    return redirect('home')
-                except Account.DoesNotExist:
-                    error = 'Account number does not exist'
+                            # Save the transaction with account_number
+                            Transaction.objects.create(
+                                account_number=account_number,
+                                transaction_type='D',  # 'D' for Deposit
+                                amount=new_amount,
+                                total_amount=accounts.amount,
+                                description='Deposit via BANK'
+                            )
+                        return redirect('home')
+                    except Account.DoesNotExist:
+                        error = 'Account number does not exist'
     
-    else:
-        if account_details:
-            update_form = UpdateAmountForm(initial={'account_number': account_details.account_number})
-
     return render(request, 'deposit_amount.html', {
         'form': form,
         'update_form': update_form,
@@ -455,23 +458,28 @@ def get_loan(request, account_number):
     if request.method == 'POST':
         form = LoanForm(request.POST)
         if form.is_valid():
-            loan = form.save(commit=False)
-            loan.account_number = account_number  # Ensure the correct account number is saved
-            loan.reason = form.cleaned_data['reason']  # Capture the reason from the form
-            loan.save()
+            try:
+                loan = form.save(commit=False)
+                loan.account_number = account_number  # Ensure the correct account number is saved
+                loan.reason = form.cleaned_data['reason']  # Capture the reason from the form
+                loan.save()
 
-            # Send an email notification
-            send_mail(
-                'Loan Created Successfully',
-                f'Your loan has been successfully sanctioned.\n\n Reason: {loan.reason} \nAmount: ₹{loan.loan_amount}\nInterest: {loan.interest_rate}\nTime Period: {loan.tenure} Months\nBest Regards,\nUNIQUE BANK',
-                settings.DEFAULT_FROM_EMAIL,
-                [account_details.email],
-                fail_silently=False,
-            )
+                # Send an email notification
+                send_mail(
+                    'Loan Details',
+                    f'Your loan has been successfully sanctioned.\n\nLoan Reason: {loan.reason} \nAmount: ₹{loan.loan_amount}\nInterest: {loan.interest_rate} %\nTime Period: {loan.tenure} Months\n\n\nBest Regards,\nUNIQUE BANK',
+                    settings.DEFAULT_FROM_EMAIL,
+                    [account_details.email],
+                    fail_silently=False,
+                )
 
-            # Redirect to home after saving
-            return redirect('home')
-
+                # Redirect to home after saving
+                return redirect('home')
+            except IntegrityError:
+                # Handle duplicate entry by adding an error message to the form
+                form.add_error(None, "A loan with this reason already exists for this account.")
+        else:
+            print(f"Form errors: {form.errors}")
     else:
         form = LoanForm()
 
@@ -542,8 +550,8 @@ def close_loan(request, account_number):
 
                 # Send an email notification
                 send_mail(
-                    'Loan Closed Successfully',
-                    f'Your "{reason}" loan has been successfully closed.\nBest Regards,\nUNIQUE BANK',
+                    'Loan Details',
+                    f'Your "{reason}" loan has been successfully closed.\n\n\nBest Regards,\nUNIQUE BANK',
                     settings.DEFAULT_FROM_EMAIL,
                     [recipient_email],
                     fail_silently=False,
