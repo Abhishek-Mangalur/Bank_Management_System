@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ATM</title>
     <link rel="website icon" type="png" href="/static/images/icon.jpg">
+    <title>ATM</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -16,13 +16,13 @@
         h1 {
             text-align: center;
             color: #333;
-            margin-bottom: 20px;
+            margin: 0 0 30px 0;
         }
 
         form {
-            max-width: 500px;
+            max-width: 440px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 30px;
             background-color: #fff;
             border-radius: 8px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
@@ -61,9 +61,11 @@
         }
 
         .error {
-            color: red;
+            color: #fff;
+            padding: 10px;
+            border-radius: 4px;
             text-align: center;
-            margin-top: 10px;
+            background-color: #ff4d4d;
         }
         
         .number-input {
@@ -90,17 +92,15 @@
     </style>
 </head>
 <body>
-    
     <form method="post">
         <h1>ATM</h1>
         {% csrf_token %}
         <label for="generated_number">ATM Card Number:</label>
         {{ number_form.generated_number }}
+        {% if error %}
+            <p class="error">{{ error }}</p>
+        {% endif %}
         <button type="submit">Submit</button>
     </form>
-
-    {% if error %}
-        <p class="error">{{ error }}</p>
-    {% endif %}
 </body>
 </html>

@@ -16,15 +16,12 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from myapp.views import custom_login, home, custom_logout, user_form, delete_account, edit_account, edit_accounts, deposite_amount, withdraw_amount, atm_redirect, atm_options, balance_enquiry, deposit, withdraw, view_transactions, loan_fetch, get_loan, close_loan, pay_loan, atmappln, loan_transactions, fetch_fd, fd_list, create_fd, close_fd, loan_list
+from myapp.views import home, user_form, delete_account, edit_account, edit_accounts, deposite_amount, withdraw_amount, atm_redirect, atm_options, balance_enquiry, deposit, withdraw, view_transactions, loan_fetch, get_loan, close_loan, pay_loan, atmappln, loan_transactions, fetch_fd, fd_list, create_fd, close_fd, loan_list
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', custom_login, name='login'),
-    path('login/', custom_login, name='login'),
-    path('logout/', custom_logout, name='login'),
-    path('home/', home, name='home'),
+    path('', home, name='home'),
     path('form/', user_form, name='user_form'),
     path('delete/', delete_account, name='delete_account'),
     path('edit/', edit_account, name='edit_account'),

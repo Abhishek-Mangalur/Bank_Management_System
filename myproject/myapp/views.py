@@ -11,25 +11,8 @@ from django.utils import timezone
 from myapp.models import Account, Transaction, Loan, LoanTransaction, FixedDeposit
 from myapp.forms import AccountForm, EmailForm, EditForm, AccountNumberForm, DepositeForm, UpdateAmountForm, NumberForm, PinForm, AtmDepositForm, LoanSelectForm, PayLoanForm, LoanForm, FixedDepositForm
 
-
-def custom_login(request):
-    if request.method == 'POST':
-        username = request.POST['username']
-        password = request.POST['password']
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            login(request, user)
-            return redirect('/home/')
-        else:
-            return HttpResponse('Invalid login')
-    return render(request, 'login.html')
-
 def home(request):
     return render(request, 'home.html')
-
-def custom_logout(request):
-    logout(request)
-    return redirect('/login/')
 
 def user_form(request):
     if request.method == 'POST':
@@ -50,45 +33,64 @@ def user_form(request):
     return render(request, 'user_form.html', {'form': form})
 
 def delete_account(request):
+    error = None  # Variable to store error messages if account doesn't exist
+
     if request.method == 'POST':
         account_number = request.POST.get('account_number')
         try:
             # Retrieve the account using the account number
             accounts = Account.objects.get(account_number=account_number)
-            registered_email = accounts.email  # Assuming the 'account' model has an 'email' field
+            registered_email = accounts.email  # Assuming the 'Account' model has an 'email' field
+            
             # Delete the account
             accounts.delete()
+            
             # Send a success message to the user's email
             send_mail(
                 'Account Deletion Confirmation',
-                'Your account has been successfully deleted.\n\nThank You for Using UNIQUE BANK Services\n\n\nBest Regards,\nUNIQUE BANK',
+                'Your account has been successfully deleted.\n\nThank you for using UNIQUE BANK services.\n\nBest regards,\nUNIQUE BANK',
                 'abhimangalur2@gmail.com',  # Replace with your "from" email
                 [registered_email],
                 fail_silently=False,
             )
+            
+            # Success message for the user and redirect to homepage
             messages.success(request, 'Account successfully deleted. A confirmation email has been sent.')
+            return redirect('home')
+        
         except Account.DoesNotExist:
-            messages.error(request, 'No account found with this account number.')
-        return redirect('home')
-    return render(request, 'delete_account.html')
+            # If account does not exist, show the error above the delete button
+            error = 'No account found with this account number.'
+
+    # Render the form and pass the error message to the template
+    return render(request, 'delete_account.html', {'error': error})
 
 def edit_accounts(request):
     return render(request, 'edit_accounts.html')
 
 def edit_account(request):
-    account_number = request.GET.get('account_number') if request.method == 'GET' else request.POST.get('account_number')    
-    # Fetch the account instance only once
-    accounts = get_object_or_404(Account, account_number=account_number)
+    account_number = request.GET.get('account_number') if request.method == 'GET' else request.POST.get('account_number')
+    
     if request.method == 'POST':
-        form = EditForm(request.POST, request.FILES, instance=accounts)
-        if form.is_valid():
-            form.save()
-            return redirect('home')
-        else:
-            return render(request, 'edit_account.html', {'form': form, 'error': 'Form is invalid', 'account_number': account_number})
+        try:
+            # Fetch the account instance only once
+            accounts = get_object_or_404(Account, account_number=account_number)
+            form = EditForm(request.POST, request.FILES, instance=accounts)
+            if form.is_valid():
+                form.save()
+                return redirect('home')
+            else:
+                return render(request, 'edit_account.html', {'form': form, 'error': 'Form is invalid', 'account_number': account_number})
+        except:
+            return render(request, 'edit_account.html', {'error': 'Account number not found', 'account_number': account_number})
+    
     else:  # Handle GET request
-        form = EditForm(instance=accounts)
-        return render(request, 'edit_account.html', {'form': form, 'account_number': account_number})
+        try:
+            accounts = get_object_or_404(Account, account_number=account_number)
+            form = EditForm(instance=accounts)
+            return render(request, 'edit_account.html', {'form': form, 'account_number': account_number})
+        except:
+            return render(request, 'edit_accounts.html', {'error': 'Account number not found'})
 
 def atmappln(request):
     if request.method == 'POST':
@@ -608,16 +610,16 @@ def fetch_fd(request):
     if request.method == 'POST':
         if form.is_valid():
             account_number = form.cleaned_data['account_number'].strip()
-            try:
-                # Fetch the account holder details
-                account_holder = get_object_or_404(Account, account_number=account_number)
-                
+            
+            # Fetch account details using filter() instead of get_object_or_404()
+            account_holder = Account.objects.filter(account_number=account_number).first()
+            
+            if account_holder:
                 # Fetch all FDs associated with the account
                 fds = FixedDeposit.objects.filter(account_number=account_holder)
-                print(f"Fetched FDs: {fds}")  # Debug print statement
-                
                 show_create_fd_button = True  # Show the "Create FD" button
-            except Account.DoesNotExist:
+            else:
+                # If the account is not found, set the error message
                 error = 'Account number does not exist.'
 
     return render(request, 'fetch_fd.html', {
@@ -627,6 +629,7 @@ def fetch_fd(request):
         'error': error,
         'show_create_fd_button': show_create_fd_button
     })
+
 
 def create_fd(request, account_number):
     account = get_object_or_404(Account, account_number=account_number)

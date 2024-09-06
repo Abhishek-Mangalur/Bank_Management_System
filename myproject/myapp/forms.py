@@ -20,16 +20,21 @@ class AccountForm(forms.ModelForm):
         self.fields['amount'].widget.attrs['placeholder'] = ''
 
 class EditForm(forms.ModelForm):
-    terms_accepted = forms.BooleanField(label="I accept the terms and conditions", required=True)
-    
+    terms_accepted = forms.BooleanField(
+        label="I accept the terms and conditions",
+        required=True
+    )
+
     class Meta:
-        model = Account  # Ensure this matches your model name
-        fields = ['account_number', 'fname', 'lname', 'age', 'email', 'phone', 'address', 'gender', 'photo', 'terms_accepted']
+        model = Account
+        fields = [
+            'account_number', 'fname', 'lname', 'age', 'email', 'phone', 'address', 'gender', 'photo', 'terms_accepted'
+        ]
 
     def __init__(self, *args, **kwargs):
         super(EditForm, self).__init__(*args, **kwargs)
-        # Disable the account_number field
-        self.fields['account_number'].disabled = True
+        if self.instance and self.instance.pk:
+            self.fields['account_number'].disabled = True
 
 class EmailForm(forms.Form):
     email = forms.EmailField()

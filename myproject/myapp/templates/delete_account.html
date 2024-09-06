@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Delete Account</title>
     <link rel="website icon" type="png" href="/static/images/icon.jpg">
+    <title>Delete Account</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -22,34 +22,13 @@
             margin: 0 0 30px 0;
         }
 
-        .message {
-            margin-bottom: 20px;
-            padding: 10px;
-            border-radius: 4px;
-            text-align: center;
-            width: 100%;
-            max-width: 400px;
-        }
-
-        .message.success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .message.error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
         form {
             background-color: #fff;
-            padding: 20px;
+            padding: 30px;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             width: 100%;
-            max-width: 400px;
+            max-width: 440px;
             text-align: center;
         }
 
@@ -84,20 +63,51 @@
             float: left;
         }
 
+        .error {
+            color: #fff;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+            background-color: #ff4d4d;
+            margin-bottom: 20px;
+        }
+
         @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+
             form {
+                padding: 15px;
                 width: 90%;
+            }
+
+            button {
+                font-size: 14px;
+            }
+
+            input[type="text"], input[type="number"] {
+                font-size: 14px;
             }
         }
     </style>
 </head>
-<body>   
-    <form method="POST">
-        <h1>Delete Account</h1><br>
-        {% csrf_token %}
-        <label for="account_number">Account Number:</label>
-        <input type="number" id="account_number" name="account_number" required placeholder="Enter Account Number">
-        <button type="submit">Delete</button>
-    </form>
+<body>
+    <div class="container">
+        <form method="post">
+            <h1>Delete Account</h1>
+            {% csrf_token %}
+            <label for="account_number">Account Number:</label>
+            <input type="number" id="account_number" name="account_number" required>
+
+            {% if error %}
+                <div class="error">
+                    {{ error }}
+                </div>
+            {% endif %}
+
+            <button type="submit" class="btn">Delete Account</button>
+        </form>
+    </div>
 </body>
 </html>
