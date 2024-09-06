@@ -37,7 +37,6 @@ urlpatterns = [
     path('loan_fetch/', loan_fetch, name='loan_fetch'),
     path('loan_transactions/', loan_transactions, name='loan_transactions'),
     path('fetch_fd/', fetch_fd, name='fetch_fd'),
-    path('fixed-deposits/', fd_list, name='fd_list'),
     path('atm/', atm_redirect, name='atm_redirect'),
     path('atm/options/<str:generated_number>/', atm_options, name='atm_options'),
     path('balance/<str:generated_number>/', balance_enquiry, name='balance_enquiry'),
@@ -48,4 +47,6 @@ urlpatterns = [
     path('close-loan/<str:account_number>/', close_loan, name='close_loan'),    
     path('create-fd/<str:account_number>/', create_fd, name='create_fd'),
     path('close-fd/<str:account_number>/', close_fd, name='close_fd'),
+    path('loan_list/<str:generated_number>/', loan_list, name='loan_list'),
+    path('fixed-deposits/<str:account_number>/', fd_list, name='fd_list'),
 ]

@@ -9,7 +9,7 @@
             font-family: Arial, sans-serif;
             background-color: #f4f4f4;
             margin: 0;
-            padding: 0;
+            padding: 20px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -18,7 +18,17 @@
         h1 {
             color: #333;
             text-align: center;
-            margin-bottom: 20px;
+            margin: 0;
+        }
+
+        .form-container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
+            position: relative;
         }
 
         .message {
@@ -27,7 +37,6 @@
             border-radius: 4px;
             text-align: center;
             width: 100%;
-            max-width: 400px;
         }
 
         .message.success {
@@ -42,19 +51,9 @@
             border: 1px solid #f5c6cb;
         }
 
-        form {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 400px;
-            text-align: center;
-        }
-
         label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 5px;
             font-weight: bold;
             color: #555;
             text-align: left;
@@ -79,6 +78,8 @@
             cursor: pointer;
             font-size: 16px;
             width: 100%;
+            display: block;
+            margin-top: 20px;
         }
 
         button:hover {
@@ -92,49 +93,49 @@
             padding: 0;
         }
 
-        .form-container{
-            margin-top: 20px;
-            background-color: #fff;
-            padding: 30px;
-            border-radius: 8px;
-            /* box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); */
-            max-width: 500px;
-            width: 100%;
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
         }
 
         @media (max-width: 600px) {
-            form {
+            .form-container {
                 width: 90%;
             }
         }
     </style>
 </head>
 <body>
-    {% block content %}
-        <form method="post" class="form-container">
+    <div class="form-container">
+        {% block content %}
             <h1>Loan Closing Application</h1><br>
-            {% csrf_token %}
-            {{ form.as_p }}
-            <button type="submit">Check Loan</button>
-        </form>
+            <form method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit">Check Loan</button>
+            </form>
 
-        {% if form.is_bound %}
-            {% if form.errors %}
-                <div class="error">
-                    {{ form.errors }}
-                </div>
+            {% if form.is_bound %}
+                {% if form.errors %}
+                    <div class="error">
+                        {{ form.errors }}
+                    </div>
                 {% else %}
-                {% if form.cleaned_data.loan.remaining_loan == 0 %}
-                    <form method="post" action="{% url 'close_loan' account_number=account_number %}">
-                    {% csrf_token %}
-                    <button type="submit" name="close">Close Loan</button>
-                </form>
-                {% else %}
-                <p class="error">Cannot close the loan. Remaining balance must be zero.</p>
+                    {% if form.cleaned_data.loan.remaining_loan == 0 %}
+                        <form method="post" action="{% url 'close_loan' account_number=account_number %}">
+                            {% csrf_token %}
+                            <button type="submit" name="close">Close Loan</button>
+                        </form>
+                    {% else %}
+                        <br><div class="error">Cannot close the loan. Remaining balance must be zero.</div>
+                    {% endif %}
                 {% endif %}
             {% endif %}
-        {% endif %}
-    {% endblock %}
-
+        {% endblock %}
+    </div>
 </body>
 </html>

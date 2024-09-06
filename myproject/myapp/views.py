@@ -124,7 +124,7 @@ def atmappln(request):
             # Send an email with the generated number and pin
             send_mail(
                 'Your ATM Details',
-                f'Here are your ATM Card details:\n\n12-digit number: {generated_number}\n6-digit pin: {pin}\n\n\nBest Regards,\nUNIQUE BANK',
+                f'Here are your ATM Card details:\n\n12-digit Card Number: {generated_number}\n6-digit pin: {pin}\n\n\nBest Regards,\nUNIQUE BANK',
                 'abhimangalur2@gmail.com',
                 [accounts.email],
                 fail_silently=False,
@@ -425,13 +425,14 @@ def view_transactions(request):
         'error': error
     })
 
-def loan_list(request):
-    # Fetch all loans
-    loans = Loan.objects.all()
-
-    return render(request, 'loan_list.html', {
-        'loans': loans
-    })
+def loan_list(request, generated_number):
+    # Use the generated_number in your logic
+    loans = Loan.objects.filter(account_number=generated_number)
+    context = {
+        'loans': loans,
+        'generated_number': generated_number
+    }
+    return render(request, 'loan_list.html', context)
 
 def loan_fetch(request):
     account_details = None
@@ -639,14 +640,14 @@ def create_fd(request, account_number):
 
             # Send an email notification
             send_mail(
-                'Fixed Deposit Created Successfully',
+                'Fixed Deposit Details',
                 f'Your Fixed Deposit has been successfully created with the following details:\n\n'
-                f'Account Number: {account_number}\n'
-                f'Principal Amount: {fd.principal_amount:.2f}\n'
+                f'Account Number: ₹ {account_number}\n'
+                f'Principal Amount: ₹ {fd.principal_amount:.2f}\n'
                 f'Interest Rate: {fd.interest_rate}\n'
                 f'Start Date: {fd.start_date}\n'
                 f'Maturity Date: {fd.maturity_date}\n'
-                f'Matured Amount: {fd.matured_amount:.2f}\nBest Regards,\nUNIQUE BANK',
+                f'Matured Amount: ₹ {fd.matured_amount:.2f}\n\n\nBest Regards,\nUNIQUE BANK',
                 settings.DEFAULT_FROM_EMAIL,
                 [account.email],
                 fail_silently=False,
@@ -679,14 +680,14 @@ def close_fd(request, account_number):
 
         # Send an email notification
         send_mail(
-            'Fixed Deposit Closed Successfully',
+            'Fixed Deposit Details',
             f'Your Fixed Deposit with ID {fd_id} has been successfully closed. Here are the details:\n\n'
             f'Account Number: {account_number}\n'
-            f'Principal Amount: {fd.principal_amount:.2f}\n'
+            f'Principal Amount: ₹ {fd.principal_amount:.2f}\n'
             f'Interest Rate: {fd.interest_rate}%\n'
             f'Start Date: {fd.start_date}\n'
             f'Maturity Date: {fd.maturity_date}\n'
-            f'Matured Amount: {fd.matured_amount:.2f}\nBest Regards,\nUNIQUE BANK',
+            f'Matured Amount: ₹ {fd.matured_amount:.2f}\n\n\nBest Regards,\nUNIQUE BANK',
             settings.DEFAULT_FROM_EMAIL,
             [account.email],
             fail_silently=False,
@@ -700,10 +701,11 @@ def close_fd(request, account_number):
         'account_number': account_number
     })
 
-def fd_list(request):
-    # Fetch all Fixed Deposits
-    fds = FixedDeposit.objects.all()
-
+def fd_list(request, account_number):
+    # Fetch Fixed Deposits for the given account_number
+    fds = FixedDeposit.objects.filter(account_number=account_number)
+    
     return render(request, 'fixed_deposit_list.html', {
-        'fds': fds
+        'fds': fds,
+        'account_number': account_number
     })

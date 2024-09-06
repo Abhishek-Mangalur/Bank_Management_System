@@ -1,49 +1,160 @@
-<!-- templates/fetch_fd.html -->
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fetch FD</title>
+    <style>
+        /* General Styles */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1{
+            color: #333;
+            text-align: center;
+            margin: 0;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 4px;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+        label {
+            font-weight: bold;
+            color: #555;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+            width: calc(100% - 22px);  /* Adjusting for padding and border */
+        }
+
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border: 1px solid #f5c6cb;
+        }
+
+        form {
+            margin-bottom: 20px;
+        }
+
+        form p {
+            margin-bottom: 15px;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: space-between; /* This evenly distributes buttons */
+            gap: 10px; /* Optional: Adds space between buttons */
+        }
+
+        .actions a {
+            flex-grow: 1; /* Ensures all buttons are of equal width */
+        }
+
+        .account-details {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+        .form-container{
+            margin-top: -10px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Fetch Account Details</h1>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Fetch Account Holder</button>
-    </form>
-    <a href="{% url 'home' %}"><button>HOME</button></a>
 
-    {% if account_holder %}
-        {% if show_create_fd_button %}
-            <a href="{% url 'create_fd' account_number=account_holder.account_number %}"><button>Create FD</button></a>
-            <a href="{% url 'close_fd' account_number=account_holder.account_number %}"><button>Close FD</button></a>
-            <a href="{% url 'fd_list' %}"><button>FD List</button></a>
+    <div class="container">
+        <h1>Fixed Deposits</h1><br>
 
-            <h2>Account Holder: {{ account_holder.fname }} {{ account_holder.lname }}</h2>
+        <form method="post">
+            {% csrf_token %}
+            <label for="account_number">Account Number:</label>
+            <div class="form-container">
+                {{ form.as_p }}
+            </div>
+            <div class="button-container">
+                <button type="submit">Fetch Details</button>
+            </div>
+        </form>
+
+        {% if account_holder %}
+            <div class="account-details">
+                <h3>Account Details:</h3>
+                <p><strong>Account Holder Name:</strong> {{ account_holder.fname }} {{ account_holder.lname }}</p>
+                <p><strong>Email:</strong> {{ account_holder.email }}</p>
+            </div><br>
+
+            {% if show_create_fd_button %}
+                <div class="actions">
+                    <a href="{% url 'create_fd' account_number=account_holder.account_number %}"><button>Create FD</button></a>
+                    <a href="{% url 'close_fd' account_number=account_holder.account_number %}"><button>Close FD</button></a>
+                    <a href="{% url 'fd_list' account_number=account_holder.account_number %}"><button>FD List</button></a>
+                </div>
+            {% endif %}
+
+            {% if fds.exists %}
+                <h3>Fixed Deposits:</h3>
+                <ul>
+                    {% for fd in fds %}
+                        <li>
+                            FD ID: {{ fd.id }}, Principal: ₹{{ fd.principal_amount }}, 
+                            Interest Rate: {{ fd.interest_rate }}%, 
+                            Start Date: {{ fd.start_date }}, 
+                            Maturity Date: {{ fd.maturity_date }},
+                            Matured Amount: ₹{{ fd.matured_amount }}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
         {% endif %}
-    {% endif %}
 
-    <!-- {% if account_holder %}
-        {% if fds.exists %}
-            <h3>Fixed Deposits:</h3>
-            <ul>
-                {% for fd in fds %}
-                    <li>
-                        FD ID: {{ fd.id }}, Principal: {{ fd.principal_amount }}, 
-                        Interest Rate: {{ fd.interest_rate }}%, 
-                        Start Date: {{ fd.start_date }}, 
-                        Maturity Date: {{ fd.maturity_date }},
-                        Matured Amount: {{ fd.matured_amount }}
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p>No Fixed Deposits found for this account.</p>
+        {% if error %}
+            <div class="error">
+                {{ error }}
+            </div>
         {% endif %}
-    {% endif %} -->
+    </div>
 
-    {% if error %}
-        <p>{{ error }}</p>
-    {% endif %}
 </body>
 </html>

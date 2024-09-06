@@ -10,17 +10,16 @@
             font-family: Arial, sans-serif;
             background-color: #f4f4f4;
             margin: 0;
-            padding: 0;
+            padding: 20px;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
         }
 
         h1 {
             color: #333;
             text-align: center;
-            margin-bottom: 20px;
+            margin: 0 0 30px 0;
         }
 
         .message {
@@ -92,19 +91,7 @@
         }
     </style>
 </head>
-<body>
-    
-    <!-- Placeholder for Django messages -->
-    {% if messages %}
-    <div class="message-container">
-        {% for message in messages %}
-        <div class="message {% if message.tags %}{{ message.tags }}{% endif %}">
-            {{ message }}
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-    
+<body>   
     <form method="POST">
         <h1>Delete Account</h1><br>
         {% csrf_token %}

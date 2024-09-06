@@ -1,5 +1,7 @@
 from django import forms
+from datetime import date
 from .models import Account, Loan, FixedDeposit
+from django.core.exceptions import ValidationError
 
 class AccountForm(forms.ModelForm):
     terms_accepted = forms.BooleanField(label="I accept the terms and conditions", required=True)
@@ -9,12 +11,13 @@ class AccountForm(forms.ModelForm):
         fields = ['fname', 'lname', 'age', 'email', 'phone', 'address', 'gender', 'photo', 'date', 'amount', 'terms_accepted']
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date'}),  # Renders the date field as a date picker
+            'phone': forms.NumberInput(attrs={'placeholder': ''}),  # Phone field as a number input
         }
 
     def __init__(self, *args, **kwargs):
         super(AccountForm, self).__init__(*args, **kwargs)
         self.fields['amount'].initial = None  # This makes the amount field empty by default
-        self.fields['amount'].widget.attrs['placeholder'] = ''  # Optional: Adds an empty placeholder
+        self.fields['amount'].widget.attrs['placeholder'] = ''
 
 class EditForm(forms.ModelForm):
     terms_accepted = forms.BooleanField(label="I accept the terms and conditions", required=True)
@@ -32,14 +35,32 @@ class EmailForm(forms.Form):
     email = forms.EmailField()
 
 class AccountNumberForm(forms.Form):
-    account_number = forms.CharField(max_length=20)
+    account_number = forms.CharField(
+        max_length=20, 
+        label='', 
+        widget=forms.NumberInput(attrs={
+            'min': '100000',
+            'max': '99999999999999',
+            'step': '1',
+            'class': 'number-input'
+        })
+    )
 
 class DepositeForm(forms.Form):
-    account_number = forms.CharField(max_length=20, label='')
+    account_number = forms.CharField(
+        max_length=20, 
+        label='', 
+        widget=forms.NumberInput(attrs={
+            'min': '100000',
+            'max': '99999999999999',
+            'step': '1',
+            'class': 'number-input'
+        })
+    )
 
 class UpdateAmountForm(forms.Form):
     account_number = forms.CharField(max_length=20, widget=forms.HiddenInput())
-    new_amount = forms.DecimalField(max_digits=10, decimal_places=2, label='Enter Amount')
+    new_amount = forms.DecimalField(max_digits=10, decimal_places=2, label='')
 
     def clean_new_amount(self):
         new_amount = self.cleaned_data.get('new_amount')
@@ -48,14 +69,31 @@ class UpdateAmountForm(forms.Form):
         return new_amount
 
 class NumberForm(forms.Form):
-    generated_number = forms.CharField(max_length=20, label='')
+    generated_number = forms.CharField(
+        max_length=20, 
+        label='', 
+        widget=forms.NumberInput(attrs={
+            'min': '100000',
+            'max': '99999999999999',
+            'step': '1',
+            'class': 'number-input'
+        })
+    )
 
 class PinForm(forms.Form):
-    pin = forms.CharField(required=False)  # Set required to False
+    pin = forms.CharField(
+        required=False,  # Set required to False
+        widget=forms.NumberInput(attrs={
+            'min': '100000',
+            'max': '999999',
+            'step': '1',
+            'class': 'pin-input'
+        })
+    )
 
     def __init__(self, *args, **kwargs):
         super(PinForm, self).__init__(*args, **kwargs)
-        self.fields['pin'].label = ""  # Remove label
+        self.fields['pin'].label = ""
 
 
 class AtmDepositForm(forms.Form):
@@ -115,6 +153,17 @@ class FixedDepositForm(forms.ModelForm):
     class Meta:
         model = FixedDeposit
         fields = ['principal_amount', 'interest_rate', 'start_date', 'maturity_date']
+        widgets = {
+            'maturity_date': forms.DateInput(attrs={'type': 'date'}),  # Date picker for maturity_date
+            'start_date': forms.DateInput(attrs={'type': 'date'})      # Optional: Add a date picker for start_date as well
+        }
+
+    # Validation to ensure maturity date is not in the past
+    def clean_maturity_date(self):
+        maturity_date = self.cleaned_data.get('maturity_date')
+        if maturity_date < date.today():
+            raise ValidationError("Maturity date cannot be in the past. Please select a future date.")
+        return maturity_date
 
 class FDAccountNumberForm(forms.Form):
     account_number = forms.CharField(max_length=14, label='Account Number')

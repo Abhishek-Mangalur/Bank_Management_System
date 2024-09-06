@@ -24,11 +24,9 @@
             width: 100%;
         }
 
-        h2 {
-            margin-bottom: 20px;
-            font-size: 24px;
+        h1 {
             color: #333;
-            text-align: center;
+            text-align: center;margin: 0 0 30px 0;
         }
 
         form {
@@ -38,7 +36,7 @@
 
         label {
             font-weight: bold;
-            margin-bottom: 5px;
+            margin-bottom: 10px;
             color: #555;
         }
 
@@ -60,6 +58,7 @@
             border-radius: 5px;
             cursor: pointer;
             font-size: 16px;
+            width: 100%;
             transition: background-color 0.3s ease;
         }
 
@@ -92,11 +91,17 @@
             border-radius: 4px;
             background-color: #f9f9f9;
         }
+        .input-container {
+            margin-top: 5px; /* Apply margin to the account number field */
+        }
+        p {
+            margin: 5px 0;
+        }
     </style>
 </head>
 <body>
     <div class="form-container">
-        <h2>Deposit Form</h2>
+        <h1>Deposit Form</h1>
         {% if error %}
             <div class="error">{{ error }}</div>
         {% endif %}
@@ -104,9 +109,11 @@
             {% csrf_token %}
             <div>
                 <label for="account_number">Account Number:</label>
-                {{ form.account_number }}
+                <div class="input-container">
+                    {{ form.account_number }}
+                </div>
                 <button type="submit" name="fetch_details">Fetch Details</button>
-            </div><br><br>
+            </div>
             {% if account_details %}
                 <div class="account-details">
                     <h3>Account Details:</h3>
@@ -115,6 +122,7 @@
                     <p><strong>Current Balance:</strong> ₹ {{ account_details.amount }}</p>
                 </div><br>
                 <div>
+                    <label for="update_amount">Account Number:</label>
                     {{ update_form.as_p }}
                     <button type="submit" name="update_amount">Deposit</button>
                 </div>

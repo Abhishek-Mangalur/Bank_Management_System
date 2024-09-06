@@ -40,7 +40,6 @@ class Transaction(models.Model):
     ]
     
     account_number = models.CharField(max_length=14)  # Store the account_number directly
-    transaction_type = models.CharField(max_length=1, choices=TRANSACTION_TYPES)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     date = models.DateTimeField(auto_now_add=True)
