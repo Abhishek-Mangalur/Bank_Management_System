@@ -136,11 +136,13 @@
         {% if error %}
             <p class="error">{{ error }}</p>
         {% endif %}
+        {% if no_transactions_message %}
+            <p class="error">{{ no_transactions_message }}</p>
+        {% endif %}
         <button type="submit">Submit</button>
     </form>
 
-
-    {% if transaction %}
+    {% if transactions %}
         <div class="transaction-table">
             <h3>Transaction History</h3>
             <table>
@@ -153,16 +155,20 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for transactions in transaction %}
-                        <tr>
-                            <td>{{ transactions.date }}</td>
-                            <td>{{ transactions.description }}</td>
-                            <td>₹ {{ transactions.amount }}</td>
-                            <td>₹ {{ transactions.total_amount }}</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                    <tbody></tbody>
+                        {% for transaction in transactions %}
+                            <tr>
+                                <td>{{ transaction.date }}</td>
+                                <td>{{ transaction.description }}</td>
+                                <td>₹ {{ transaction.amount }}</td>
+                                <td>₹ {{ transaction.total_amount }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% elif no_transactions_message %}
+                <p>{{ no_transactions_message }}</p>
         </div>
     {% endif %}
 </body>

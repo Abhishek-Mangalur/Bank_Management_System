@@ -1,0 +1,78 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard</title>
+</head>
+<body>
+
+    <div class="center">
+      <div class="left">
+
+        <div class="rows">
+          <div class="options">
+            <a href="{% url 'user_form' %}">
+              <button class="btns">Create Account</button>
+            </a>
+          </div>
+          <div class="options">
+            <a href="{% url 'edit_accounts' %}">
+              <button class="btns">Edit Account</button>
+            </a>
+          </div>
+          <div class="options">
+            <a href="{% url 'delete_account' %}">
+              <button class="btns">Delete Account</button>
+            </a>
+          </div>
+        </div>
+
+        <div class="rows">
+          <div class="options">
+            <a href="{% url 'atmappln' %}">
+              <button class="btns">ATM Application</button>
+            </a>
+          </div>
+          <div class="options">
+            <a href="{% url 'deposite_amount' %}">
+              <button class="btns">Deposite</button>
+            </a>
+          </div>
+          <div class="options">
+            <a href="{% url 'withdraw_amount' %}">
+              <button class="btns">Withdraw</button>
+            </a>
+          </div>
+        </div>
+
+        <div class="rows">
+          <div class="options">
+            <a href="{% url 'atm_redirect' %}">
+              <button class="btns">ATM</button></a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+      <div class="options">
+        <a href="{% url 'view_transactions' %}">
+          <button>View Transactions</button>
+        </a>
+      </div>
+      <div class="options">
+        <a href="{% url 'loan_fetch' %}">
+          <button type="button">Loan</button>
+        </a>
+      </div>
+      <div class="options">
+        <a href="{% url 'loan_transactions' %}">
+          <button type="button">Loan Transaction</button>
+        </a>
+      </div>
+      <div class="options">
+        <a href="{% url 'fetch_fd' %}">
+          <button type="button">FD</button>
+        </a>
+      </div>
+</body>
+</html>

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>Enter Account Number</h1>
+    <!-- view_transactions.html -->
+    <form method="post">
+        {% csrf_token %}
+        {{ form.account_number }}
+        <button type="submit">Submit</button>
+    </form>
+
+    {% if error %}
+        <p style="color:red;">{{ error }}</p>
+    {% endif %}
+
+    {% if transaction %}
+        <h3>Transaction History</h3>
+        <ol>
+            {% for transactions in transaction %}
+                <li>{{ transactions.date }} - {{ transactions.transaction_type }} - {{ transactions.description }} - {{ transactions.amount }} - {{ transactions.total_amount }}</li>
+            {% endfor %}
+        </ol>
+    {% endif %}
+
+</body>
+</html>

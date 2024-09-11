@@ -76,13 +76,13 @@
             text-align: center;
         }
 
-        .error-message {
-            color: red;
-            background-color: #f5e7e7;
+        .errorlist {
+            color: #fff;
             padding: 10px;
-            border-radius: 5px;
-            margin-top: 20px;
+            border-radius: 4px;
+            margin-top: -5px;
             text-align: center;
+            background-color: #ff4d4d;
         }
     </style>
 </head>
@@ -93,6 +93,9 @@
         <form method="post" class="fd-form">
             {% csrf_token %}
             {{ form.as_p }}
+            {% if error %}
+                <div class="error">{{ error }}</div>
+            {% endif %}
             <input type="hidden" name="account_number" value="{{ account_number }}">
             <button type="submit" class="btn-submit">Apply FD</button>
         </form>

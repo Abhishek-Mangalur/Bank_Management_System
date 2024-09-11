@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delete Account</title>
+    <link rel="website icon" type="png" href="/static/images/icon.jpg">
+</head>
+<body>
+    <h1>Delete Account</h1>
+    <form method="POST">
+        {% csrf_token %}
+        <input type="number" id="account_number" name="account_number" required>
+        <button type="submit">Delete</button>
+    </form>
+</body>
+</html>

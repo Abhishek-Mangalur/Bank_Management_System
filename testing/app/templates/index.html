@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Dashboard</title>
+    <link rel="website icon" type="png" href="/static/images/icon.jpg">
+    <link rel="stylesheet" href="{% static 'css/styles2.css' %}">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://getbootstrap.com/docs/5.3/assets/css/docs.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <style>
+    *{
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    .btns{
+        background: none; 
+        border: none; 
+        color: #fff;
+        width: 350px;
+        height: 100px;
+    }
+    
+    .header1{
+        display: flex;
+        justify-content: space-between;
+        background-color: #55679C;
+        box-shadow: inset;
+    }
+    
+    .btn1{
+        padding: 10px;
+        border-radius: 50%;
+        margin: 15px;
+    }
+    
+    .btn1:hover{
+        background-color: #AAB396;
+        cursor: pointer;
+        box-shadow: 5px 10px 20px black;
+    }
+    
+    .wlcm{
+        margin: 15px;
+        font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+        font-weight: bold;
+        color: #fff;
+    }
+    
+    .imr{
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-position: center;
+        width: 100%;
+        max-width: 1400px;
+        height: 300px;
+    }
+    
+    .br1{
+        margin: 0;
+        margin-bottom: -7px;
+        background-color: #071952;
+        color: #fff;
+        font-size: 1.2rem;
+        padding-top: 20px;
+    }
+    
+    footer{
+        text-align: center;
+        font-weight: bold;
+        background-color: #55679C;
+        padding: 20px 0;
+        color: #fff;
+    }
+    
+    .options{
+        display: grid;
+        border-radius: 20px 0 20px 0;
+        text-align: center;
+        font-size: 1.5rem;
+        font-family: 'Times New Roman', Times, serif;
+        /* max-height: 150px; */
+        /* padding: 2.5%; */
+        color: #FDFFE2;
+        cursor: pointer;
+        margin: 1%;
+        background: linear-gradient(to right, #4B70F5, #4C3BCF);
+        text-decoration: none;
+    }
+    
+    .options:hover{
+        box-shadow: 5px 10px 20px cyan;
+    }
+
+
+.col{
+    border: 1px solid black;
+    background-color: #071952;
+}
+.col11{
+    border: 1px solid black;
+    background-color: #071952;
+    margin: 10px 10px 20px 10px;
+    height: 100px;
+}
+.col12 .btns{
+    width: 450px;
+}
+.col12{
+    border: 1px solid black;
+    background-color: #071952;
+    margin: 10px 10px 20px 10px;
+}
+.row{
+    margin: 0;
+}
+
+.containers{
+    background-color: #071952;
+}
+.container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 columns of equal width */
+    grid-template-rows: repeat(3, auto) 1fr; /* 3 rows with auto height, and 1 row with custom layout */
+    gap: 10px; /* Gap between columns and rows */
+}
+.col{
+    border: 1px solid black;
+}
+
+/* Last row customization */
+.last-row {
+    grid-column: 1 / span 3; /* Make the row span across all 3 columns */
+    display: grid;
+    grid-template-columns: 1fr 2fr; /* Two columns with 1/3 and 2/3 width */
+}
+
+.last-row .col1 {
+    grid-column: 1 / 2;
+    border: 1px solid black;
+    /* margin-right: 5px; */
+}
+
+.last-row .col2 {
+    grid-column: 2 / 3;
+    border: 1px solid black;
+}
+
+.container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 columns of equal width */
+    grid-template-rows: repeat(4, auto); /* 4 rows */
+    gap: 10px; /* Gap between columns and rows */
+}
+
+/* Media query for screens 800px and below */
+@media screen and (max-width: 800px) {
+    .container {
+        grid-template-columns: 1fr; /* Single column layout */
+        grid-auto-rows: auto; /* Automatically adjust row heights */
+    }
+
+    .container > div {
+        grid-column: 1 / -1; /* Each column will now take full width of the row */
+    }
+    .last-row {
+        grid-template-columns: 1fr; /* Stack columns in last row vertically */
+    }
+
+    .last-row .col1, .last-row .col2 {
+        grid-column: 1 / -1; /* Each column in last row takes full width */
+        margin: 0;
+    }
+    .col11{
+    border: 1px solid black;
+    background-color: #071952;
+    margin: 10px 10px 20px 10px;
+    height: 100px;
+}
+.col12{
+    border: 1px solid black;
+    background-color: #071952;
+    margin: -5px 10px 20px 10px;
+}
+}
+    </style>
+</head>
+<body>
+    <header class="header1">
+        <h1 class="wlcm p-3 m-0 border-0 bd-example m-0 border-0">WELCOME TO UNIQUE BANK</h1>
+
+        <form method="post" action="{% url 'login' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn1">Logout</button>
+        </form>
+    </header>
+
+    <!-- <div id="carouselExampleIndicators" class="carousel slide">
+      <div class="carousel-indicators">
+        <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+        <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="1" aria-label="Slide 2"></button>
+        <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="2" aria-label="Slide 3"></button>
+      </div>
+      <div class="carousel-inner">
+        <div class="carousel-item active">
+          <img class="imr" src="/static/images/1st.jpeg" class="d-block w-100" alt="image">
+        </div>
+        <div class="carousel-item">
+          <img class="imr" src="/static/images/2nd.jpg" class="d-block w-100" alt="image">
+        </div>
+        <div class="carousel-item">
+          <img class="imr" src="/static/images/3rd.avif" class="d-block w-100" alt="image">
+        </div>
+      </div>
+      <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Previous</span>
+      </button>
+      <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Next</span>
+      </button>
+    </div> -->
+
+    <marquee behavior="" direction="left" class="br1">Latest Updates: Updates are comming soon..!</marquee>
+
+
+    <div class="containers">
+      <!-- First row with 3 columns -->
+      <div class="row" style="margin-right: 0;">
+          <div class="col options">
+            <a href="{% url 'user_form' %}">
+              <button class="btns">Create Account</button>
+            </a>
+          </div>
+          <div class="col options">
+            <a href="{% url 'edit_accounts' %}">
+                <button class="btns">Edit Account</button>
+            </a>
+          </div>
+          <div class="col options">
+            <a href="{% url 'delete_account' %}">
+                <button class="btns">Delete Account</button>
+            </a>
+          </div>
+      </div>
+  
+      <!-- Second row with 3 columns -->
+      <div class="row">
+          <div class="col options">
+            <a href="{% url 'atmappln' %}">
+                <button class="btns">ATM Application</button>
+            </a>
+          </div>
+          <div class="col options">
+            <a href="{% url 'deposite_amount' %}">
+                <button class="btns">Deposite</button>
+            </a>
+          </div>
+          <div class="col options">
+            <a href="{% url 'withdraw_amount' %}">
+                <button class="btns">Withdraw</button>
+            </a>
+          </div>
+      </div>
+  
+      <!-- Third row with 3 columns -->
+      <div class="row">
+          <div class="col options">
+            <a href="{% url 'loan_fetch' %}">
+                <button class="btns">Loan</button>
+            </a>
+          </div>
+          <div class="col options">
+            <a href="{% url 'fetch_fd' %}">
+                <button class="btns">FD</button>
+            </a>
+          </div>
+          <div class="col options">
+            <a href="{% url 'view_transactions' %}">
+                <button class="btns">SB Transactions</button>
+            </a>
+          </div>
+      </div>
+  
+      <!-- Last row with 1/3 and 2/3 layout -->
+      <div class="last-row">
+          <div class="col11 options">
+            <a href="{% url 'loan_transactions' %}">
+                <button class="btns">Loan Transactions</button>
+            </a>
+          </div>
+          <div class="col12 options">
+            <a href="{% url 'atm_redirect' %}">
+                <button class="btns">ATM</button>
+            </a>
+          </div>
+          <div class="col13"></div> <!-- Hidden third column -->
+      </div>
+    </div>
+    <!-- <div class="center">
+      <div class="left">
+
+        <div class="rows">
+          <div class="options">
+            <a href="{% url 'user_form' %}">
+              <button class="btns">Create Account</button>
+            </a>
+          </div>
+          <div class="options">
+            <a href="{% url 'edit_accounts' %}">
+              <button class="btns">Edit Account</button>
+            </a>
+          </div>
+          <div class="options">
+            <a href="{% url 'delete_account' %}">
+              <button class="btns">Delete Account</button>
+            </a>
+          </div>
+        </div>
+
+        <div class="rows">
+          <div class="options">
+            <a href="{% url 'atmappln' %}">
+              <button class="btns">ATM Application</button>
+            </a>
+          </div>
+          <div class="options">
+            <a href="{% url 'deposite_amount' %}">
+              <button class="btns">Deposite</button>
+            </a>
+          </div>
+          <div class="options">
+            <a href="{% url 'withdraw_amount' %}">
+              <button class="btns">Withdraw</button>
+            </a>
+          </div>
+        </div>
+
+        <div class="rows">
+          <div class="options">
+            <a href="{% url 'loan_fetch' %}">
+              <button class="btns">Loan</button>
+            </a>
+          </div>
+          <div class="options">
+            <a href="{% url 'fetch_fd' %}">
+              <button class="btns">FD</button>
+            </a>
+          </div>
+          <div class="options">
+            <a href="{% url 'view_transactions' %}">
+              <button class="btns">SB Transactions</button>
+            </a>
+          </div>
+
+        </div>
+        <div class="drows">
+          <div class="options"  id="sb">
+            <a href="{% url 'loan_transactions' %}">
+              <button class="btns">Loan Transactions</button>
+            </a>
+          </div>
+          <div class="options" id="atm">
+            <a href="{% url 'atm_redirect' %}">
+              <button class="btns">ATM</button>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="right"><b>NOTICE:</b>
+        <ul>
+          <li>Online Bank Service will be 24 Hours</li>
+          <li>Minimum Account balance should be Rs.500</li>
+          <li>Zero balance Account is also available..!</li>
+          <li>Minimum age for Major Account is 18years</li>
+          <li>Minimum 50,000 can be withdrawn per day</li>
+        </ul>
+      </div>
+    </div> -->
+
+    <footer>
+      &copy; 2024, UNIQUE BANK, All rights reserved
+    </footer>
+</body>
+</html>

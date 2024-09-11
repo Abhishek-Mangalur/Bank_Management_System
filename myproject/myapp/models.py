@@ -34,11 +34,6 @@ class Account(models.Model):
         return f"{self.fname} {self.lname}"
 
 class Transaction(models.Model):
-    TRANSACTION_TYPES = [
-        ('D', 'Deposit'),
-        ('W', 'Withdrawal'),
-    ]
-    
     account_number = models.CharField(max_length=14)  # Store the account_number directly
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)

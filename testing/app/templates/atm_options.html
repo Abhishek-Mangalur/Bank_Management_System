@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATM Options</title>
+    <link rel="website icon" type="png" href="/static/images/icon.jpg">
+</head>
+<body>
+    <h1>Welcome</h1>
+    <p>Your card number: {{ generated_number }}</p>
+    <h1>Select the Services</h1>
+
+    <a href="{% url 'balance_enquiry' generated_number=generated_number %}"><button>Balance Enquiry</button></a>
+    <a href="{% url 'deposit' generated_number=generated_number %}"><button>Deposit</button></a>
+    <a href="{% url 'withdraw' generated_number=generated_number %}"><button>Withdraw</button></a>
+    <a href="{% url 'home' %}"><button>HOME</button></a>
+</body>
+</html>

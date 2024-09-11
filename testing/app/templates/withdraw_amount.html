@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="website icon" type="png" href="/static/images/icon.jpg">
+</head>
+<body>
+    <h1>Enter Account Nuber for Withdraw</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+    
+        <button type="submit" name="fetch_details">Fetch Details</button>
+    
+        {% if account_details %}
+            <p>First Name: {{ account_details.fname }}</p>
+            <p>Last Name: {{ account_details.lname }}</p>
+            <p>Current Amount: {{ account_details.amount }}</p>
+    
+            <h2>Enter Amount</h2>
+            <form method="post">
+                {% csrf_token %}
+                {{ update_form.new_amount }}
+                <button type="submit" name="update_amount">Submit</button>
+            </form>
+        {% endif %}
+    
+        {% if error %}
+            <p style="color: red;">{{ error }}</p>
+        {% endif %}
+    </form>
+</body>
+</html>

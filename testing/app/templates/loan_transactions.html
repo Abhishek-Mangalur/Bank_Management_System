@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loan Transactions</title>
+</head>
+<body>
+    <h1>Loan Transactions</h1>
+
+    {% if error %}
+        <div class="error">{{ error }}</div>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Fetch Transactions</button>
+    </form>
+    
+    <a href="{% url 'home' %}"><button>HOME</button></a><br>
+
+    {% if transactions %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Total Loan</th>
+                    <th>Paid Amount</th>
+                    <th>Remaining Loan</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for transaction in transactions %}
+                    <tr>
+                        <td>{{ transaction.date_time|date:"Y-m-d H:i:s" }}</td>
+                        <td>{{ transaction.total_loan }}</td>
+                        <td>{{ transaction.amount }}</td>
+                        <td>{{ transaction.remaining_loan }}</td>
+                        <td>{{ transaction.description }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+</body>
+</html>

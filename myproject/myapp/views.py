@@ -171,7 +171,6 @@ def deposite_amount(request):
                             # Save the transaction with account_number
                             Transaction.objects.create(
                                 account_number=account_number,
-                                transaction_type='D',  # 'D' for Deposit
                                 amount=new_amount,
                                 total_amount=accounts.amount,
                                 description='Deposit via BANK'
@@ -219,7 +218,6 @@ def withdraw_amount(request):
                             # Save the transaction with the updated total_amount
                             Transaction.objects.create(
                                 account_number=account_number,
-                                transaction_type='W',  # 'W' for Withdraw
                                 amount=new_amount,
                                 total_amount=accounts.amount,  # Store the updated balance
                                 description='Withdraw via BANK'
@@ -317,7 +315,6 @@ def deposit(request, generated_number):
                         # Save the transaction
                         Transaction.objects.create(
                             account_number=account_details.account_number,
-                            transaction_type='D',  # 'D' for Deposit
                             amount=new_amount,
                             total_amount=account_details.amount,  # Store the updated balance
                             description='Deposit via ATM'
@@ -377,7 +374,6 @@ def withdraw(request, generated_number):
                             # Save the transaction
                             Transaction.objects.create(
                                 account_number=account_details.account_number,
-                                transaction_type='W',  # 'W' for Withdraw
                                 amount=new_amount,
                                 total_amount=account_details.amount,  # Store the updated balance
                                 description='Withdraw via ATM'
@@ -396,7 +392,7 @@ def withdraw(request, generated_number):
     if pin_validated and deposit_form is None:
         deposit_form = AtmDepositForm()
 
-    return render(request, 'deposit.html', {
+    return render(request, 'withdraw.html', {
         'form': form,
         'deposit_form': deposit_form,
         'pin_error': pin_error,
@@ -406,26 +402,35 @@ def withdraw(request, generated_number):
 
 def view_transactions(request):
     form = AccountNumberForm(request.POST or None)
-    transaction = None
+    transactions = None  # Use plural for multiple transactions
     error = None
+    no_transactions_message = None  # Initialize the message variable
 
     if request.method == 'POST':
         if form.is_valid():
             account_number = form.cleaned_data['account_number'].strip()
+
             try:
                 # Ensure the account exists
                 account_obj = Account.objects.get(account_number=account_number)
                 
-                # Fetch all transactions related to the account, ordered from oldest to newest
-                transaction = Transaction.objects.filter(account_number=account_number).order_by('date')
+                # Fetch all transactions related to the account_number, ordered from oldest to newest
+                transactions = Transaction.objects.filter(account_number=account_number).order_by('date')
+                
+                # If no transactions exist, display a message
+                if not transactions.exists():
+                    no_transactions_message = 'No transactions found for this account.'
+                    
             except Account.DoesNotExist:
-                error = 'Account number does not exist'
+                error = 'Account number does not exist.'
 
     return render(request, 'view_transactions.html', {
         'form': form,
-        'transaction': transaction,
-        'error': error
+        'transactions': transactions,  # Use plural for passing transactions
+        'error': error,
+        'no_transactions_message': no_transactions_message  # Handle no transactions message
     })
+
 
 def loan_list(request, generated_number):
     # Use the generated_number in your logic

@@ -44,7 +44,7 @@ class AccountNumberForm(forms.Form):
         max_length=20, 
         label='', 
         widget=forms.NumberInput(attrs={
-            'min': '100000',
+            'min': '000000',
             'max': '99999999999999',
             'step': '1',
             'class': 'number-input'
@@ -56,7 +56,7 @@ class DepositeForm(forms.Form):
         max_length=20, 
         label='', 
         widget=forms.NumberInput(attrs={
-            'min': '100000',
+            'min': '000000',
             'max': '99999999999999',
             'step': '1',
             'class': 'number-input'
@@ -78,7 +78,7 @@ class NumberForm(forms.Form):
         max_length=20, 
         label='', 
         widget=forms.NumberInput(attrs={
-            'min': '100000',
+            'min': '000000',
             'max': '99999999999999',
             'step': '1',
             'class': 'number-input'
@@ -89,7 +89,7 @@ class PinForm(forms.Form):
     pin = forms.CharField(
         required=False,  # Set required to False
         widget=forms.NumberInput(attrs={
-            'min': '100000',
+            'min': '000000',
             'max': '999999',
             'step': '1',
             'class': 'pin-input'
