@@ -2,6 +2,7 @@ from django import forms
 from datetime import date
 from .models import Account, Loan, FixedDeposit
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 class AccountForm(forms.ModelForm):
     terms_accepted = forms.BooleanField(label="I accept the terms and conditions", required=True)
@@ -18,6 +19,18 @@ class AccountForm(forms.ModelForm):
         super(AccountForm, self).__init__(*args, **kwargs)
         self.fields['amount'].initial = None  # This makes the amount field empty by default
         self.fields['amount'].widget.attrs['placeholder'] = ''
+
+    def clean_amount(self):
+        amount = self.cleaned_data.get('amount')
+        if amount is not None and amount < 0:
+            raise ValidationError('The amount not less than 0')
+        return amount
+
+    def clean_date(self):
+        date = self.cleaned_data.get('date')
+        if date is not None and date < timezone.now().date():
+            raise ValidationError('The date must be today or in the future')
+        return date
 
 class EditForm(forms.ModelForm):
     terms_accepted = forms.BooleanField(
